@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: bank_postgres
+    environment:
+      POSTGRES_DB: bankdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Можно добавить volume для init скриптов, если нужно создать расширения (например, для pgcrypto)
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - bank_network
+
+volumes:
+  postgres_data:
+
+networks:
+  bank_network:
+    driver: bridge

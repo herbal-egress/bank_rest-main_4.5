@@ -1,0 +1,61 @@
+# application.yml
+
+spring:
+  application:
+    name: bank-rest
+
+  profiles:
+    active: dev
+
+---
+# Настройки для разработки (профиль dev)
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bankdb
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Важно: не используем create-drop, чтобы Liquibase полностью контролировал схему
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        format_sql: true
+        # Регистрируем специальный конвертер для типа YearMonth.
+        # Конвертер будет автоматически применён ко всем полям типа YearMonth.
+        metadata_builder_contributor: com.example.bankcards.config.JpaConfig
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  # Настройки для Swagger/OpenAPI
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+    swagger-ui:
+      path: /swagger-ui.html
+      enabled: true
+
+# Настройки JWT
+jwt:
+  secret: mySecretKey # !!! В ПРОДАКШЕНЕ ЗАМЕНИТЬ НА СИЛЬНЫЙ КЛЮЧ И ВЫНЕСТИ В ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ !!!
+  expiration: 86400000 # Время жизни токена в миллисекундах (24 часа)
+
+# Настройки логирования для удобства отладки
+logging:
+  level:
+    com.example.bank_rest: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+server:
+  port: 8080
