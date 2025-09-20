@@ -1,7 +1,7 @@
 // config/security/JwtRequestFilter.java
 package com.example.bankcards.config.security;
 
-import com.example.bankcards.service.auth.CustomUserDetailsService;
+import com.example.bankcards.service.auth.UserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ import java.io.IOException;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     // Добавленный код: Сервис для загрузки пользователей.
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     // Добавленный код: Утилита для работы с JWT.
     private final JwtUtil jwtUtil;

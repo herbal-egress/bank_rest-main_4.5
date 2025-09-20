@@ -30,7 +30,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     // Добавленный код: Кастомный UserDetailsService для загрузки пользователей.
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     /**
      * Добавленный код: Выполняет аутентификацию и возвращает JWT токен.

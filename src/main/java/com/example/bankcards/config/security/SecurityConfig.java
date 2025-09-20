@@ -1,7 +1,7 @@
 // config/security/SecurityConfig.java - КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ
 package com.example.bankcards.config.security;
 
-import com.example.bankcards.service.auth.CustomUserDetailsService;
+import com.example.bankcards.service.auth.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +34,7 @@ import java.util.List;
 @Primary // добавленный код: Обеспечивает приоритет этой конфигурации
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
 
     /**

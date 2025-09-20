@@ -1,10 +1,9 @@
-// service/auth/CustomUserDetailsService.java
+// service/auth/UserDetailsService.java
 package com.example.bankcards.service.auth;
 
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CustomUserDetailsService implements UserDetailsService {
+public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
     // Добавленный код: Репозиторий для работы с пользователями.
     private final UserRepository userRepository;
