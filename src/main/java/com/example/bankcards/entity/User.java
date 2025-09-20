@@ -1,4 +1,3 @@
-// entity/User.java
 package com.example.bankcards.entity;
 
 // Добавленный код: Импорт необходимых аннотаций JPA и классов для работы с коллекциями и валидацией
@@ -13,9 +12,22 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 // Добавленный код: Сущность User представляет пользователя системы. Реализует UserDetails для интеграции с Spring Security.
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"roles"}) // добавленный код: Исключаем поле roles из equals/hashCode для избежания проблем с JPA отношениями.
+@ToString(exclude = {"roles"}) // добавленный код: Исключаем поле roles из toString для предотвращения рекурсии при ленивой загрузке.
 public class User implements UserDetails {
     // Добавленный код: Первичный ключ, генерируемый БД
     @Id
@@ -44,49 +56,6 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-
-    // Добавленный код: Конструктор по умолчанию (требование JPA)
-    public User() {
-    }
-
-    // Добавленный код: Конструктор для удобного создания пользователя
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
 
     // Добавленный код: Методы интерфейса UserDetails. В данном случае, аккаунт всегда активен, не просрочен и не заблокирован.
     // Эти методы можно усложнить, добавив соответствующие поля в сущность, если потребуется.

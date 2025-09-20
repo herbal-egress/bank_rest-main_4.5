@@ -17,7 +17,10 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Configuration
+@Slf4j // добавленный код: Добавляет logger для конфигурационного класса.
 public class JpaConfig {
 
     // Изменено ИИ: Исправлен импорт SpringPhysicalNamingStrategy на PhysicalNamingStrategyStandardImpl
@@ -40,6 +43,7 @@ public class JpaConfig {
         // Добавленный код: Регистрируем конвертер YearMonthAttributeConverter глобально для всех сущностей
         jpaProperties.put("hibernate.attributeConverter", yearMonthAttributeConverter());
         em.setJpaPropertyMap(jpaProperties);
+        log.debug("EntityManagerFactory настроен с параметрами: {}", jpaProperties); // добавленный код: Логирует конфигурацию для отладки.
 
         return em;
     }

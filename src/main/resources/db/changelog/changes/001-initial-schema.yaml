@@ -14,123 +14,48 @@ databaseChangeLog:
       id: 2
       author: system
       changes:
-        - createTable:
-            tableName: roles
-            columns:
-              - column:
-                  name: id
-                  type: INT
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: name
-                  type: VARCHAR(50)
-                  constraints:
-                    unique: true
-                    nullable: false
+        - sql:
+            sql: "CREATE TABLE IF NOT EXISTS roles (id SERIAL PRIMARY KEY, name VARCHAR(50) UNIQUE NOT NULL);"
 
   - changeSet:
       id: 3
       author: system
       changes:
-        - createTable:
-            tableName: users
-            columns:
-              - column:
-                  name: id
-                  type: BIGINT
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: username
-                  type: VARCHAR(50)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: password
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
+        - sql:
+            sql: "
+              CREATE TABLE IF NOT EXISTS users (
+                id BIGSERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL
+              );"
 
   - changeSet:
       id: 4
       author: system
       changes:
-        - createTable:
-            tableName: users_roles
-            columns:
-              - column:
-                  name: user_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_user_role_user
-                    references: users(id)
-                    deleteCascade: true
-              - column:
-                  name: role_id
-                  type: INT
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_user_role_role
-                    references: roles(id)
-                    deleteCascade: true
-        - addPrimaryKey:
-            columnNames: user_id, role_id
-            tableName: users_roles
+        - sql:
+            sql: "
+              CREATE TABLE IF NOT EXISTS users_roles (
+                user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+                PRIMARY KEY (user_id, role_id)
+              );"
 
   - changeSet:
       id: 5
       author: system
       changes:
-        - createTable:
-            tableName: cards
-            columns:
-              - column:
-                  name: id
-                  type: BIGINT
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: encrypted_card_number
-                  type: TEXT
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: owner_name
-                  type: VARCHAR(50)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: expiration_date
-                  type: DATE # YearMonth будет конвертирован в дату (первое число месяца)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: status
-                  type: VARCHAR(20)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: balance
-                  type: DOUBLE PRECISION
-                  constraints:
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: BIGINT
-                  constraints:
-                    nullable: false
-                    foreignKeyName: fk_card_user
-                    references: users(id)
+        - sql:
+            sql: "
+              CREATE TABLE IF NOT EXISTS cards (
+                id BIGSERIAL PRIMARY KEY,
+                encrypted_card_number TEXT UNIQUE NOT NULL,
+                owner_name VARCHAR(50) NOT NULL,
+                expiration_date DATE NOT NULL,
+                status VARCHAR(20) NOT NULL,
+                balance DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+                user_id BIGINT NOT NULL REFERENCES users(id)
+              );"
 
   - changeSet:
       id: 6
@@ -149,3 +74,54 @@ databaseChangeLog:
               - column:
                   name: name
                   value: ADMIN
+
+  # Добавленный код: НОВЫЙ changeSet id=7 для создания тестовых пользователей через SQL.
+  # Используется BCrypt хеш пароля 'test' с strength 12.
+  - changeSet:
+      id: 7
+      author: system
+      comments: Create initial test users with BCrypt hashed passwords
+      changes:
+        - sql:
+            sql: |
+              -- Добавленный код: Создаем пользователя 'test' с паролем 'test'
+              -- BCrypt хеш для пароля 'test' (strength 12): $2a$12$/CzOYhzQkuTC4uktLZgBvu8WOXXBIRLllHRRpXLHAizaApVdwuFLq
+              INSERT INTO users (username, password) 
+              VALUES ('test', '$2a$12$/CzOYhzQkuTC4uktLZgBvu8WOXXBIRLllHRRpXLHAizaApVdwuFLq')
+              ON CONFLICT (username) DO NOTHING;
+
+              -- Добавленный код: Создаем администратора 'admin' с паролем 'admin'
+              -- BCrypt хеш для пароля 'admin' (strength 12): $2a$12$KTh8bU.CtA/7eHQum36wo.SwaTgs6n.c1s26qReAabmsF4YN5cbMy
+              INSERT INTO users (username, password) 
+              VALUES ('admin', '$2a$12$KTh8bU.CtA/7eHQum36wo.SwaTgs6n.c1s26qReAabmsF4YN5cbMy')
+              ON CONFLICT (username) DO NOTHING;
+
+  # Добавленный код: НОВЫЙ changeSet id=8 для назначения ролей пользователям через SQL.
+  - changeSet:
+      id: 8
+      author: system
+      comments: Assign roles to initial users via SQL
+      changes:
+        - sql:
+            sql: |
+              -- Добавленный код: Назначаем роль USER (id=1) пользователю 'test'
+              INSERT INTO users_roles (user_id, role_id)
+              SELECT u.id, r.id 
+              FROM users u, roles r 
+              WHERE u.username = 'test' AND r.name = 'USER'
+              ON CONFLICT (user_id, role_id) DO NOTHING;
+
+              -- Добавленный код: Назначаем роль ADMIN (id=2) пользователю 'admin'
+              INSERT INTO users_roles (user_id, role_id)
+              SELECT u.id, r.id 
+              FROM users u, roles r 
+              WHERE u.username = 'admin' AND r.name = 'ADMIN'
+              ON CONFLICT (user_id, role_id) DO NOTHING;
+
+              -- Добавленный код: Выводим информацию о созданных пользователях для проверки
+              -- (эта строка не обязательна, но полезна для отладки)
+              DO $$
+              BEGIN
+                RAISE NOTICE 'Создано пользователей: %', (SELECT COUNT(*) FROM users);
+                RAISE NOTICE 'Назначено ролей: %', (SELECT COUNT(*) FROM users_roles);
+              END $$;

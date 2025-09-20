@@ -1,4 +1,3 @@
-// entity/Card.java
 package com.example.bankcards.entity;
 
 // Добавленный код: Импорт необходимых аннотаций JPA, валидации и классов для работы с датами
@@ -8,9 +7,22 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.YearMonth;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 // Добавленный код: Сущность Card представляет банковскую карту пользователя.
 @Entity
 @Table(name = "cards")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"user"}) // добавленный код: Исключаем поле user из equals/hashCode для избежания проблем с JPA отношениями.
+@ToString(exclude = {"user"}) // добавленный код: Исключаем поле user из toString для предотвращения рекурсии при ленивой загрузке.
 public class Card {
     // Добавленный код: Первичный ключ, генерируемый БД
     @Id
@@ -61,66 +73,5 @@ public class Card {
         ACTIVE,    // Активна
         BLOCKED,   // Заблокирована
         EXPIRED    // Истек срок
-    }
-
-    // Добавленный код: Конструктор по умолчанию (требование JPA)
-    public Card() {
-    }
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getEncryptedCardNumber() {
-        return encryptedCardNumber;
-    }
-
-    public void setEncryptedCardNumber(String encryptedCardNumber) {
-        this.encryptedCardNumber = encryptedCardNumber;
-    }
-
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
-    }
-
-    public YearMonth getExpirationDate() {
-        return expirationDate;
-    }
-
-    public void setExpirationDate(YearMonth expirationDate) {
-        this.expirationDate = expirationDate;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public Double getBalance() {
-        return balance;
-    }
-
-    public void setBalance(Double balance) {
-        this.balance = balance;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }
