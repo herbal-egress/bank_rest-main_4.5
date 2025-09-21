@@ -1,17 +1,12 @@
 // controller/CardController.java
 package com.example.bankcards.controller;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.access.AccessDeniedException;
-import com.example.bankcards.exception.AuthenticationException; // Если нет, создать
-import com.example.bankcards.service.UserService;
 import com.example.bankcards.dto.card.CardRequest;
 import com.example.bankcards.dto.card.CardResponse;
-import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.service.CardService;
-import com.example.bankcards.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,24 +16,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
+
+@SecurityScheme(
+        name = "bearerAuth",
+        type = HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT",
+        description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
+)
+
 /**
- * REST контроллер для операций с картами.
+ * Добавленный код: REST контроллер для операций с картами.
  */
 @RestController
 @RequestMapping("/api")
 @Tag(name = "Карты", description = "Управление банковскими картами")
+@SecurityRequirement(name = "bearerAuth") // Применяет схему безопасности ко всем методам, указывает требование токена в Swagger
 @RequiredArgsConstructor
 @Slf4j
 public class CardController {
 
     private final CardService cardService;
-    private final UserService userService;
 
     // Административные endpoints
     @PostMapping("/admin/cards")
@@ -61,9 +64,8 @@ public class CardController {
 
     @PutMapping("/admin/cards/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Обновить карту (Админ)", description = "Обновляет данные существующей карты")
-    public ResponseEntity<CardResponse> updateCard(@PathVariable Long id,
-                                                   @Valid @RequestBody CardRequest cardRequest) {
+    @Operation(summary = "Обновить карту (Админ)", description = "Обновляет данные карты")
+    public ResponseEntity<CardResponse> updateCard(@PathVariable Long id, @Valid @RequestBody CardRequest cardRequest) {
         log.info("PUT /api/admin/cards/{} - Обновление карты администратором", id);
         CardResponse updatedCard = cardService.updateCard(id, cardRequest);
         return ResponseEntity.ok(updatedCard);
@@ -71,7 +73,7 @@ public class CardController {
 
     @DeleteMapping("/admin/cards/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Удалить карту (Админ)", description = "Удаляет карту из системы")
+    @Operation(summary = "Удалить карту (Админ)", description = "Удаляет карту по идентификатору")
     public ResponseEntity<Void> deleteCard(@PathVariable Long id) {
         log.info("DELETE /api/admin/cards/{} - Удаление карты администратором", id);
         cardService.deleteCard(id);
@@ -85,55 +87,8 @@ public class CardController {
     public ResponseEntity<Page<CardResponse>> getMyCards(Pageable pageable,
                                                          @RequestParam(required = false) Long userId) {
         log.info("GET /api/user/cards - Запрос карт пользователя");
-
-        // Получаем текущего аутентифицированного пользователя из SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            log.error("Пользователь не аутентифицирован при запросе карт");
-            throw new AuthenticationException("Пользователь не аутентифицирован");
-        }
-
-        String currentUsername = authentication.getName();
-        log.debug("Текущий аутентифицированный пользователь: {}", currentUsername);
-
-        // Получаем ID текущего пользователя из UserService
-        Long currentUserId;
-        try {
-            currentUserId = userService.getUserByUsername(currentUsername).getId();
-            log.debug("ID текущего пользователя: {}", currentUserId);
-        } catch (UserNotFoundException e) {
-            log.error("Текущий пользователь {} не найден в базе данных", currentUsername);
-            throw new AuthenticationException("Ошибка идентификации пользователя");
-        }
-
-        // Определяем, чьи карты запрашиваются
-        Long actualUserId;
-        if (userId != null) {
-            // Если передан userId, проверяем права доступа
-            if (!userId.equals(currentUserId)) {
-                // Проверяем, является ли текущий пользователь администратором
-                boolean isAdmin = authentication.getAuthorities().stream()
-                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
-
-                if (!isAdmin) {
-                    log.warn("Пользователь {} пытается получить карты другого пользователя (ID: {})",
-                            currentUsername, userId);
-                    throw new AccessDeniedException("Доступ к картам другого пользователя запрещен");
-                }
-                log.debug("Администратор {} запрашивает карты пользователя ID: {}", currentUsername, userId);
-            }
-            actualUserId = userId;
-        } else {
-            // Если userId не передан, показываем карты текущего пользователя
-            actualUserId = currentUserId;
-            log.debug("Показываются карты текущего пользователя ID: {}", actualUserId);
-        }
-
-        // Получаем карты с валидацией
-        Page<CardResponse> cards = cardService.getUserCards(actualUserId, pageable);
-        log.info("Успешно возвращено {} карт для пользователя ID: {} (страница: {}, размер: {})",
-                cards.getTotalElements(), actualUserId, pageable.getPageNumber(), pageable.getPageSize());
-
+        // В реальном приложении userId брался бы из аутентификации
+        Page<CardResponse> cards = cardService.getUserCards(userId, pageable);
         return ResponseEntity.ok(cards);
     }
 
@@ -162,24 +117,5 @@ public class CardController {
         log.info("POST /api/user/cards/{}/activate - Активация карты пользователем", id);
         CardResponse activatedCard = cardService.activateCard(id);
         return ResponseEntity.ok(activatedCard);
-    }
-
-    // ДОПОЛНИТЕЛЬНЫЙ ENDPOINT: Получение активных карт пользователя
-    @GetMapping("/user/cards/active")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    @Operation(summary = "Получить активные карты", description = "Возвращает только активные карты текущего пользователя")
-    public ResponseEntity<List<CardResponse>> getMyActiveCards(@RequestParam(required = false) Long userId,
-                                                               Authentication authentication) {
-        log.info("GET /api/user/cards/active - Запрос активных карт пользователя");
-
-        // Аналогично getMyCards - логика получения userId
-        Long actualUserId = userId;
-        if (userId == null) {
-            log.warn("userId не передан для активных карт");
-            // actualUserId = getCurrentUserId(authentication);
-        }
-
-        List<CardResponse> activeCards = cardService.getActiveCardsByUserId(actualUserId);
-        return ResponseEntity.ok(activeCards);
     }
 }

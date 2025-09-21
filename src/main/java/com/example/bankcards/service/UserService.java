@@ -7,7 +7,6 @@ import com.example.bankcards.entity.Role;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.exception.UsernameAlreadyExistsException;
-import com.example.bankcards.exception.InvalidRoleException; // Добавленный кастомный exception
 import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +20,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// Сервисный слой для бизнес-логики работы с пользователями.
+/**
+ * Добавленный код: Сервисный слой для бизнес-логики работы с пользователями.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleRepository roleRepository; // Будет создан ниже
     private final PasswordEncoder passwordEncoder;
 
-    // Создание нового пользователя. Шифрует пароль, проверяет уникальность username, назначает роли.
+    /**
+     * Добавленный код: Создание нового пользователя.
+     * Шифрует пароль, проверяет уникальность username, назначает роли.
+     */
     @Transactional
     public UserResponse createUser(UserRequest userRequest) {
         log.info("Запрос на создание пользователя: {}", userRequest.getUsername());
@@ -56,89 +60,54 @@ public class UserService {
         return mapToUserResponse(savedUser);
     }
 
-    // Получение пользователя по ID.
+    /**
+     * Добавленный код: Получение пользователя по ID.
+     */
+    @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
-        log.debug("Запрос на получение пользователя по ID: {}", id);
+        log.debug("Запрос пользователя по ID: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Пользователь с ID {} не найден", id);
                     return new UserNotFoundException("Пользователь с ID " + id + " не найден");
                 });
-        log.info("Пользователь с ID {} успешно получен", id);
         return mapToUserResponse(user);
     }
 
-    // Получение всех пользователей.
+    /**
+     * Добавленный код: Получение всех пользователей.
+     */
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
-        log.debug("Запрос на получение всех пользователей");
+        log.debug("Запрос всех пользователей");
         List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            log.warn("Список пользователей пуст");
-        } else {
-            log.info("Получено {} пользователей", users.size());
-        }
-        return users.stream().map(this::mapToUserResponse).collect(Collectors.toList());
-    }
-    /**
-     * НОВЫЙ МЕТОД: Получение пользователя по username для аутентификации и SecurityContext
-     * @param username Имя пользователя из JWT токена или SecurityContext
-     * @return UserResponse с данными пользователя
-     * @throws UserNotFoundException если пользователь не найден
-     */
-    public UserResponse getUserByUsername(String username) {
-        log.debug("Запрос на получение пользователя по username: {}", username);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    log.error("Пользователь с username '{}' не найден в базе данных", username);
-                    return new UserNotFoundException("Пользователь с именем '" + username + "' не найден");
-                });
-
-        log.info("Пользователь {} успешно получен по username", username);
-        return mapToUserResponse(user);
+        log.info("Найдено {} пользователей", users.size());
+        return users.stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
     }
 
     /**
-     * НОВЫЙ МЕТОД: Получение сущности User (не DTO) по username для внутренних операций
-     * Используется для получения полного объекта User с ролями и связями
-     * @param username Имя пользователя
-     * @return Сущность User
-     * @throws UserNotFoundException если пользователь не найден
+     * Добавленный код: Обновление данных пользователя.
      */
-    public User getUserEntityByUsername(String username) {
-        log.debug("Запрос на получение сущности User по username: {}", username);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    log.error("Сущность User с username '{}' не найдена в базе данных", username);
-                    return new UserNotFoundException("Пользователь с именем '" + username + "' не найден");
-                });
-
-        log.debug("Сущность User {} успешно получена по username", username);
-        return user;
-    }
-
-    // Обновление пользователя.
     @Transactional
     public UserResponse updateUser(Long id, UserRequest userRequest) {
         log.info("Запрос на обновление пользователя с ID: {}", id);
         User user = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Пользователь с ID {} не найден для обновления", id);
-                    return new UserNotFoundException("Пользователь с ID " + id + " не найден");
-                });
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
 
-        // Проверка уникальности username, если изменилось
+        // Проверяем, не занят ли новый username другим пользователем
         if (!user.getUsername().equals(userRequest.getUsername()) &&
                 userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            log.error("Попытка обновить username на уже существующий: {}", userRequest.getUsername());
-            throw new UsernameAlreadyExistsException("Пользователь с именем '" + userRequest.getUsername() + "' уже существует");
+            log.error("Попытка обновить username на уже занятый: {}", userRequest.getUsername());
+            throw new UsernameAlreadyExistsException("Имя пользователя '" + userRequest.getUsername() + "' уже занято");
         }
 
         user.setUsername(userRequest.getUsername());
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
+        // Обновляем пароль, только если он предоставлен и не пустой
+        if (userRequest.getPassword() != null && !userRequest.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-            log.debug("Пароль пользователя обновлен");
+            log.debug("Пароль пользователя ID {} обновлен", id);
         }
 
         // Обновляем роли
@@ -150,7 +119,9 @@ public class UserService {
         return mapToUserResponse(updatedUser);
     }
 
-    // Удаление пользователя по ID.
+    /**
+     * Добавленный код: Удаление пользователя по ID.
+     */
     @Transactional
     public void deleteUser(Long id) {
         log.info("Запрос на удаление пользователя с ID: {}", id);
@@ -162,7 +133,9 @@ public class UserService {
         log.info("Пользователь с ID {} успешно удален", id);
     }
 
-    // Вспомогательный метод для преобразования User в UserResponse.
+    /**
+     * Добавленный код: Вспомогательный метод для преобразования User в UserResponse.
+     */
     private UserResponse mapToUserResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
@@ -173,16 +146,16 @@ public class UserService {
         return response;
     }
 
-    // Преобразует названия ролей из String в сущности Role. Если роли не указаны, назначается роль USER по умолчанию.
+    /**
+     * Добавленный код: Преобразует названия ролей из String в сущности Role.
+     * Если роли не указаны, назначается роль USER по умолчанию.
+     */
     private Set<Role> resolveRoles(Set<String> roleNames) {
         Set<Role> roles = new HashSet<>();
         if (roleNames == null || roleNames.isEmpty()) {
             // Роль по умолчанию
             Role defaultRole = roleRepository.findByName(Role.RoleType.USER)
-                    .orElseThrow(() -> {
-                        log.error("Роль USER не найдена в базе данных");
-                        return new IllegalStateException("Роль USER не найдена в базе данных");
-                    });
+                    .orElseThrow(() -> new IllegalStateException("Роль USER не найдена в базе данных"));
             roles.add(defaultRole);
             log.debug("Назначена роль по умолчанию: USER");
         } else {
@@ -192,13 +165,10 @@ public class UserService {
                     roleType = Role.RoleType.valueOf(roleName.toUpperCase());
                 } catch (IllegalArgumentException e) {
                     log.error("Указана несуществующая роль: {}", roleName);
-                    throw new InvalidRoleException("Роль '" + roleName + "' не существует");
+                    throw new IllegalArgumentException("Роль '" + roleName + "' не существует");
                 }
                 Role role = roleRepository.findByName(roleType)
-                        .orElseThrow(() -> {
-                            log.error("Роль {} не найдена в базе данных", roleType);
-                            return new IllegalStateException("Роль " + roleType + " не найдена в базе данных");
-                        });
+                        .orElseThrow(() -> new IllegalStateException("Роль " + roleType + " не найдена в базе данных"));
                 roles.add(role);
             }
             log.debug("Назначены роли: {}", roleNames);

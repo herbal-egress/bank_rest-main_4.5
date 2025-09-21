@@ -13,6 +13,10 @@ spring:
   config:
     activate:
       on-profile: dev
+  web:
+    resources:
+      cache:
+        period: 0  # Отключаем кэширование ресурсов (предотвращает фоновые запросы)
 
   datasource:
     url: jdbc:postgresql://localhost:5432/bankdb
@@ -43,6 +47,13 @@ spring:
     swagger-ui:
       path: /swagger-ui.html
       enabled: true
+    # чтобы Swagger показывал кнопку "Authorize":
+    security-schemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: 'JWT токен: Bearer <токен>'
 
 # Настройки JWT
 jwt:
@@ -59,3 +70,11 @@ logging:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        secure: false  # Отключаем secure cookies для HTTP
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
