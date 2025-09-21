@@ -39,7 +39,7 @@ public class SecurityConfig {
 
     /**
      * Добавленный код: КРИТИЧЕСКАЯ ИСПРАВЛЕННАЯ КОНФИГУРАЦИЯ
-     * Порядок правил ВАЖЕН: permitAll ДОДЖНЫ идти ПЕРВЫМИ!
+     * Порядок правил ВАЖЕН: permitAll ДОЛЖНЫ идти ПЕРВЫМИ!
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -76,7 +76,8 @@ public class SecurityConfig {
                                 "/v3/api-docs",          // ✅ OpenAPI главный
                                 "/v3/api-docs.yaml",     // ✅ OpenAPI YAML
                                 "/actuator/health",      // ✅ Health check
-                                "/actuator/**"           // ✅ Все actuator
+                                "/actuator/**",          // ✅ Все actuator
+                                "/error"                 // ✅  /error в permitAll для обработки ошибок без аутентификации, чтобы избежать 403 при анонимном доступе к /error
                         ).permitAll()
 
                         // Добавленный код: 2. РОЛЕВЫЕ ЭНДПОИНТЫ (ПОСЛЕ permitAll)

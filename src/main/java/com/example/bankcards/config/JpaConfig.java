@@ -1,11 +1,12 @@
-// config/JpaConfig.java
+// config/JpaConfig.java - ФИНАЛЬНОЕ РЕШЕНИЕ ДЛЯ HIBERNATE 6.x
 package com.example.bankcards.config;
 
 // Добавленный код: Конфигурационный класс для регистрации конвертеров атрибутов JPA.
 import com.example.bankcards.entity.converter.YearMonthAttributeConverter;
 import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
-import org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl;
+// изменил ИИ: Используем правильный класс для Hibernate 6.x
+import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
+import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -23,9 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j // добавленный код: Добавляет logger для конфигурационного класса.
 public class JpaConfig {
 
-    // Изменено ИИ: Исправлен импорт SpringPhysicalNamingStrategy на PhysicalNamingStrategyStandardImpl
-    // (удален в Spring Boot 3.x) и SpringImplicitNamingStrategy на ImplicitNamingStrategyComponentPathImpl
-    // (соответствует стратегии по умолчанию в Hibernate 6.x).
+    // Изменено ИИ: Исправлены стратегии именования для Spring Boot 3.x / Hibernate 6.x
     // Добавленный код: Бин для настройки фабрики EntityManager. Регистрирует конвертер YearMonthAttributeConverter.
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
@@ -35,20 +34,21 @@ public class JpaConfig {
         em.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Map<String, Object> jpaProperties = new HashMap<>();
-        // Изменено ИИ: Используем PhysicalNamingStrategyStandardImpl вместо удаленного SpringPhysicalNamingStrategy
-        jpaProperties.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, PhysicalNamingStrategyStandardImpl.class.getName());
-        // Изменено ИИ: Используем ImplicitNamingStrategyComponentPathImpl вместо SpringImplicitNamingStrategy
-        // (соответствует поведению Spring Boot 3.x по умолчанию)
-        jpaProperties.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, ImplicitNamingStrategyComponentPathImpl.class.getName());
-        // Добавленный код: Регистрируем конвертер YearMonthAttributeConverter глобально для всех сущностей
-        jpaProperties.put("hibernate.attributeConverter", yearMonthAttributeConverter());
+        // изменил ИИ: КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ - используем новый синтаксис Hibernate 6.x
+        // CamelCaseToUnderscoresNamingStrategy теперь создается через new
+        jpaProperties.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY,
+                new CamelCaseToUnderscoresNamingStrategy());
+        // Изменено ИИ: Используем LegacyJpaImpl для совместимости с JPA стандартом
+        jpaProperties.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY,
+                new ImplicitNamingStrategyLegacyJpaImpl());
+
         em.setJpaPropertyMap(jpaProperties);
-        log.debug("EntityManagerFactory настроен с параметрами: {}", jpaProperties); // добавленный код: Логирует конфигурацию для отладки.
+        log.info("EntityManagerFactory настроен с CamelCaseToUnderscoresNamingStrategy"); // добавленный код: Логирует конфигурацию для отладки.
 
         return em;
     }
 
-    // Добавленный код: Объявляем бин нашего конвертера как Spring Bean
+    // Добавленный код: Объявляем бин нашего конвертера как Spring Bean (необязательно для @Converter)
     @Bean
     public YearMonthAttributeConverter yearMonthAttributeConverter() {
         return new YearMonthAttributeConverter();

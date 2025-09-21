@@ -1,5 +1,4 @@
-# application.yml
-
+# application.yml - ОЧИЩЕНИЕ ОТ ДУБЛИРУЮЩИХСЯ НАСТРОЕК
 spring:
   application:
     name: bank-rest
@@ -32,9 +31,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
         format_sql: true
-        # Регистрируем специальный конвертер для типа YearMonth.
-        # Конвертер будет автоматически применён ко всем полям типа YearMonth.
-        metadata_builder_contributor: com.example.bankcards.config.JpaConfig
+        # изменил ИИ: УДАЛЕНО - naming strategy настроен в JpaConfig.java, избегаем дублирования
+        # naming:
+        #   physical_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        #   implicit_strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
 
   liquibase:
     enabled: true
