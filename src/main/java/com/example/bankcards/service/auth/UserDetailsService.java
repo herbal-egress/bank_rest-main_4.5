@@ -10,22 +10,15 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Добавленный код: Кастомная реализация UserDetailsService для загрузки пользователей из БД.
- * Используется Spring Security для аутентификации.
- */
+// Кастомная реализация UserDetailsService для загрузки пользователей из БД. Используется Spring Security для аутентификации.
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
-    // Добавленный код: Репозиторий для работы с пользователями.
     private final UserRepository userRepository;
 
-    /**
-     * Добавленный код: Загружает пользователя по username из БД.
-     * Если пользователь не найден, выбрасывает UsernameNotFoundException.
-     */
+    // Загружает пользователя по username из БД. Если пользователь не найден, выбрасывает UsernameNotFoundException.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.debug("Загрузка пользователя по username: {}", username);
@@ -33,7 +26,7 @@ public class UserDetailsService implements org.springframework.security.core.use
                 .orElseThrow(() -> {
                     log.error("Пользователь не найден: {}", username);
                     return new UsernameNotFoundException(
-                            String.format("Пользователь с именем '%s' не найден", username));
+                            "Пользователь с именем '" + username + "' не найден");
                 });
 
         log.info("Пользователь успешно загружен: {} с ролями: {}",

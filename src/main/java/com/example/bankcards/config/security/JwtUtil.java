@@ -1,3 +1,4 @@
+// config/security/JwtUtil.java
 package com.example.bankcards.config.security;
 
 import io.jsonwebtoken.Claims;
@@ -16,57 +17,65 @@ import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Добавленный код: Утилитный класс для работы с JWT токенами.
- * Обрабатывает создание, валидацию и извлечение информации из токенов.
- */
+// Утилитный класс для работы с JWT токенами. Обрабатывает создание, валидацию и извлечение информации из токенов.
 @Component
 @Slf4j
 public class JwtUtil {
 
-    // Добавленный код: Секретный ключ для подписи токенов. В продакшене должен быть в переменных окружения.
+    // Секретный ключ для подписи токенов. В продакшене должен быть в переменных окружения.
     @Value("${jwt.secret}")
     private String secret;
 
-    // Добавленный код: Время жизни токена в миллисекундах (24 часа по умолчанию).
+    // Время жизни токена в миллисекундах (24 часа по умолчанию).
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    // Дополнение для AuthService: Геттер для времени жизни токена (для совместимости с AuthService).
+    // Геттер для времени жизни токена (для совместимости с AuthService).
     public Long getExpiration() {
         return expiration;
     }
 
-    // Добавленный код: Геттер для секретного ключа (только для чтения).
+    // Геттер для секретного ключа (только для чтения).
     public String getSecret() {
         return secret;
     }
 
-    // Добавленный код: Генерирует секретный ключ на основе строки secret. Используется HS512 алгоритм.
+    // Генерирует секретный ключ на основе строки secret. Используется HS512 алгоритм.
     private SecretKey getSigningKey() {
         log.debug("Генерация секретного ключа для подписи JWT");
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // Добавленный код: Извлекает username из токена без проверки валидности.
+    // Извлекает username из токена без проверки валидности.
     public String extractUsername(String token) {
         log.debug("Извлечение username из токена: {}", token.substring(0, Math.min(20, token.length())));
         return extractClaim(token, Claims::getSubject);
     }
 
-    // Добавленный код: Извлекает время истечения токена.
+    // Извлекает время истечения токена.
     public Date extractExpiration(String token) {
         log.debug("Извлечение времени истечения токена");
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Добавленный код: Универсальный метод для извлечения claim из токена.
+    // ДОБАВЛЕННЫЙ МЕТОД: Извлекает дату истечения токена (для совместимости с AuthService).
+    public Date getExpirationDateFromToken(String token) {
+        log.debug("Получение даты истечения токена: {}", token.substring(0, Math.min(20, token.length())));
+        try {
+            return extractExpiration(token);
+        } catch (Exception e) {
+            log.error("Ошибка извлечения даты истечения токена: {}", e.getMessage());
+            throw new IllegalArgumentException("Некорректный формат токена");
+        }
+    }
+
+    // Извлекает произвольное значение из claims токена.
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    // Добавленный код: Извлекает все claims из токена с проверкой подписи.
+    // Извлекает все claims из токена с проверкой подписи.
     private Claims extractAllClaims(String token) {
         log.debug("Извлечение всех claims из токена");
         return Jwts.parser()
@@ -76,21 +85,19 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // Добавленный код: Проверяет валидность токена по UserDetails. Возвращает true, если токен действителен.
+    // Проверяет валидность токена для конкретного пользователя.
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        log.debug("Валидация токена для пользователя: {}", username);
-        boolean isTokenValid = (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-        if (isTokenValid) {
-            log.info("Токен успешно валидирован для пользователя: {}", username);
+        boolean isValid = (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        if (isValid) {
+            log.debug("Токен валиден для пользователя: {}", username);
         } else {
-            log.warn("Токен НЕ валиден для пользователя: {}. Username: {}, Expired: {}",
-                    userDetails.getUsername(), username, isTokenExpired(token));
+            log.warn("Токен невалиден для пользователя: {}", username);
         }
-        return isTokenValid;
+        return isValid;
     }
 
-    // Добавленный код: Проверяет, истек ли токен.
+    // Проверяет, истек ли токен.
     private Boolean isTokenExpired(String token) {
         boolean isExpired = extractExpiration(token).before(new Date());
         if (isExpired) {
@@ -99,7 +106,7 @@ public class JwtUtil {
         return isExpired;
     }
 
-    // Добавленный код: Генерирует новый JWT токен для UserDetails. Включает username и роли.
+    // Генерирует новый JWT токен для UserDetails. Включает username и роли.
     public String generateToken(UserDetails userDetails) {
         log.info("Генерация нового токена для пользователя: {}", userDetails.getUsername());
         Map<String, Object> claims = new HashMap<>();
@@ -107,7 +114,7 @@ public class JwtUtil {
         return createToken(claims, userDetails.getUsername());
     }
 
-    // Добавленный код: Создает токен с дополнительными claims. Устанавливает время истечения.
+    // Создает токен с дополнительными claims. Устанавливает время истечения.
     private String createToken(Map<String, Object> claims, String subject) {
         log.debug("Создание токена для subject: {}", subject);
         return Jwts.builder()
@@ -119,7 +126,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Добавленный код: Проверяет, начинается ли токен с префикса "Bearer ".
+    // Проверяет, начинается ли токен с префикса "Bearer ".
     public Boolean isTokenValid(String token) {
         if (token == null || !token.startsWith("Bearer ")) {
             log.warn("Некорректный формат токена: {}", token != null ? token.substring(0, Math.min(20, token.length())) : "null");
