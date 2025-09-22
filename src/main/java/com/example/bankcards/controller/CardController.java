@@ -159,7 +159,7 @@ public class CardController {
     @GetMapping("/user/cards")
     @PreAuthorize("hasRole('USER')")
     @Operation(
-            summary = "Просмотреть мои карты (юзер)",
+            summary = "Просмотреть мои карты (пользователь)",
             description = "Возвращает список карт текущего аутентифицированного пользователя с пагинацией",
             parameters = {
                     @Parameter(name = "page", description = "С какой карты показать (0 - с первой карты)", example = "0", schema = @Schema(type = "integer", defaultValue = "0")),
