@@ -15,8 +15,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.bankcards.dto.card.CardUpdateRequest; // Добавленный импорт
+// Добавленный код: Импорт для работы с аутентификацией
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.YearMonth;
 import java.util.List;
@@ -70,20 +76,39 @@ public class CardService {
         return mapToCardResponse(savedCard);
     }
 
-    /**
-     * Добавленный код: Получение карты по ID.
-     */
+    // Добавленный код: Получение карты по ID.
+    // Добавленный код: В сервисе оставляем метод без изменений, но добавляем проверку принадлежности карты
     @Transactional(readOnly = true)
     public CardResponse getCardById(Long id) {
         log.debug("Запрос карты по ID: {}", id);
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Карта с ID " + id + " не найдена"));
+
+        // Добавленный код: Проверяем, принадлежит ли карта текущему пользователю (для USER)
+        checkCardOwnership(card);
+
         return mapToCardResponse(card);
     }
 
-    /**
-     * Добавленный код: Получение всех карт пользователя с пагинацией.
-     */
+    // Добавленный код: Метод проверки принадлежности карты текущему пользователю
+    private void checkCardOwnership(Card card) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // Проверяем, является ли пользователь ADMIN или владельцем карты
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!isAdmin && !card.getUser().getUsername().equals(userDetails.getUsername())) {
+                log.error("Попытка доступа к чужой карте. Пользователь: {}, Владелец карты: {}",
+                        userDetails.getUsername(), card.getUser().getUsername());
+                throw new AccessDeniedException("Доступ к карте запрещен");
+            }
+        }
+    }
+
+    // Получение всех карт пользователя с пагинацией.
     @Transactional(readOnly = true)
     public Page<CardResponse> getUserCards(Long userId, Pageable pageable) {
         log.debug("Запрос карт пользователя ID: {} с пагинацией", userId);
@@ -114,27 +139,36 @@ public class CardService {
      * Добавленный код: Обновление данных карты.
      */
     @Transactional
-    public CardResponse updateCard(Long id, CardRequest cardRequest) {
+    public CardResponse updateCard(Long id, CardUpdateRequest cardUpdateRequest) {
         log.info("Запрос на обновление карты с ID: {}", id);
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Карта с ID " + id + " не найдена"));
 
-        // Шифруем новый номер карты
-        String encryptedCardNumber = encryptionService.encrypt(cardRequest.getCardNumber());
+        // Обновляем номер карты только если он предоставлен в запросе
+        if (cardUpdateRequest.getCardNumber() != null && !cardUpdateRequest.getCardNumber().trim().isEmpty()) {
+            String encryptedCardNumber = encryptionService.encrypt(cardUpdateRequest.getCardNumber());
 
-        // Проверяем, не занят ли новый номер другой картой
-        if (!card.getEncryptedCardNumber().equals(encryptedCardNumber) &&
-                cardRepository.existsByEncryptedCardNumberAndIdNot(encryptedCardNumber, id)) {
-            log.error("Попытка обновить номер карты на уже занятый: {}", cardRequest.getCardNumber());
-            throw new CardNumberAlreadyExistsException("Номер карты '" + cardRequest.getCardNumber() + "' уже занят");
+            // Проверяем, не занят ли новый номер другой картой
+            if (!card.getEncryptedCardNumber().equals(encryptedCardNumber) &&
+                    cardRepository.existsByEncryptedCardNumberAndIdNot(encryptedCardNumber, id)) {
+                log.error("Попытка обновить номер карты на уже занятый: {}", cardUpdateRequest.getCardNumber());
+                throw new CardNumberAlreadyExistsException("Номер карты '" + cardUpdateRequest.getCardNumber() + "' уже занят");
+            }
+
+            card.setEncryptedCardNumber(encryptedCardNumber);
         }
 
-        card.setEncryptedCardNumber(encryptedCardNumber);
-        card.setOwnerName(cardRequest.getOwnerName());
-        card.setExpirationDate(cardRequest.getExpirationDate());
+        // Обновляем имя владельца только если оно предоставлено в запросе
+        if (cardUpdateRequest.getOwnerName() != null) {
+            card.setOwnerName(cardUpdateRequest.getOwnerName());
+        }
 
-        // Обновляем статус на основе нового срока действия
-        card.setStatus(determineCardStatus(cardRequest.getExpirationDate()));
+        // Обновляем срок действия только если он предоставлен в запросе
+        if (cardUpdateRequest.getExpirationDate() != null) {
+            card.setExpirationDate(cardUpdateRequest.getExpirationDate());
+            // Обновляем статус на основе нового срока действия
+            card.setStatus(determineCardStatus(cardUpdateRequest.getExpirationDate()));
+        }
 
         Card updatedCard = cardRepository.save(card);
         log.info("Карта с ID {} успешно обновлена", id);
