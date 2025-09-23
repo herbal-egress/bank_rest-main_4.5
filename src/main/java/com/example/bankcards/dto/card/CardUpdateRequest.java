@@ -1,4 +1,3 @@
-// dto/card/CardUpdateRequest.java - НОВЫЙ DTO ДЛЯ ОБНОВЛЕНИЯ КАРТЫ
 package com.example.bankcards.dto.card;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -10,17 +9,13 @@ import lombok.Data;
 import java.time.YearMonth;
 
 /**
- * Добавленный код: DTO для запроса на обновление карты.
- * Обновляет только номер карты, имя владельца и срок действия.
+ * добавленный код: DTO для запроса на обновление карты.
+ * изменил ИИ: Удалено поле cardNumber, так как номер карты теперь генерируется автоматически и не редактируется.
  */
 @Schema(description = "Запрос на обновление банковской карты")
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL) // Игнорирует null поля
+@JsonInclude(JsonInclude.Include.NON_NULL) // добавленный код: Игнорирует null поля
 public class CardUpdateRequest {
-
-    @Schema(description = "Новый номер карты (16 цифр, будет зашифрован). Опционально для обновления",
-            example = "4532015112830366")
-    private String cardNumber;
 
     @Schema(description = "Новое имя владельца карты (верхний регистр, макс. 50 символов). Опционально для обновления",
             example = "JOHN DOE")

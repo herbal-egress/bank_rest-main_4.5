@@ -28,7 +28,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Аутентификация", description = "Эндпоинты для входа в систему")
+@Tag(name = "Аутентификация", description = "Для генерации токена по логину/паролю (admin/admin, user/user)")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {

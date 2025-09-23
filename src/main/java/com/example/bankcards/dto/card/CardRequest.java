@@ -5,21 +5,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Min; // добавленный код: Импорт для @Min
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.time.YearMonth;
 
 /**
  * добавленный код: DTO для запроса на создание или обновление карты.
+ * изменил ИИ: Удалено поле cardNumber, так как номер карты теперь генерируется автоматически в сервисе.
  */
 @Schema(description = "Запрос на создание банковской карты")
 @Data
 public class CardRequest {
-
-    @Schema(description = "Номер карты (16 цифр, будет зашифрован)", example = "4532015112830366", required = true)
-    @NotBlank(message = "Номер карты не может быть пустым")
-    private String cardNumber; // Будет зашифрован при сохранении
 
     @Schema(description = "Имя владельца карты (верхний регистр, макс. 50 символов)", example = "JOHN DOE", required = true)
     @NotBlank(message = "Имя владельца не может быть пустым")
@@ -31,7 +28,6 @@ public class CardRequest {
     @JsonFormat(pattern = "yyyy-MM")
     private YearMonth expirationDate;
 
-    // добавленный код: Добавлена валидация @Min(0) для запрета отрицательного баланса
     @Schema(description = "Начальный баланс карты (должен быть >= 0)", example = "1000.50", defaultValue = "0.0")
     @NotNull(message = "Баланс не может быть пустым")
     @Min(value = 0, message = "Баланс должен быть больше или равен 0")

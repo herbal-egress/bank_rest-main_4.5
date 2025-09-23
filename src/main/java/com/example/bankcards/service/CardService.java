@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.SecureRandom; // добавленный код: Импорт для генерации безопасных случайных чисел
 import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,9 +37,14 @@ public class CardService {
     private final UserRepository userRepository;
     private final EncryptionService encryptionService;
 
+    // добавленный код: Константа для начальных цифр номера карты
+    private static final String CARD_NUMBER_PREFIX = "3985";
+    // добавленный код: Объект SecureRandom для криптографически безопасной генерации
+    private static final SecureRandom random = new SecureRandom();
+
     // добавленный код: Создание новой карты.
-    // добавленный код: Шифрует номер карты, проверяет уникальность, устанавливает статус.
-    // изменил ИИ: Добавлена проверка balance >= 0 с выбрасыванием исключения.
+    // изменил ИИ: Добавлена генерация номера карты с префиксом "3985" и случайными 12 цифрами.
+    // изменил ИИ: Удалена зависимость от cardNumber в CardRequest, так как он теперь генерируется.
     @Transactional
     public CardResponse createCard(CardRequest cardRequest) {
         log.info("Запрос на создание карты для пользователя ID: {}", cardRequest.getUserId());
@@ -52,13 +58,15 @@ public class CardService {
         User user = userRepository.findById(cardRequest.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + cardRequest.getUserId() + " не найден"));
 
+        // добавленный код: Генерация 16-значного номера карты с префиксом "3985"
+        String cardNumber = generateCardNumber();
         // добавленный код: Шифруем номер карты
-        String encryptedCardNumber = encryptionService.encrypt(cardRequest.getCardNumber());
+        String encryptedCardNumber = encryptionService.encrypt(cardNumber);
 
         // добавленный код: Проверка на существующую карту с таким номером
         if (cardRepository.existsByEncryptedCardNumber(encryptedCardNumber)) {
-            log.error("Попытка создать карту с уже существующим номером: {}", cardRequest.getCardNumber());
-            throw new CardNumberAlreadyExistsException("Карта с номером '" + cardRequest.getCardNumber() + "' уже существует");
+            log.error("Попытка создать карту с уже существующим номером: {}", cardNumber);
+            throw new CardNumberAlreadyExistsException("Карта с номером '" + cardNumber + "' уже существует");
         }
 
         Card card = new Card();
@@ -77,6 +85,18 @@ public class CardService {
         return mapToCardResponse(savedCard);
     }
 
+    // добавленный код: Метод для генерации 16-значного номера карты
+    private String generateCardNumber() {
+        // добавленный код: Создаем StringBuilder для построения номера карты
+        StringBuilder cardNumber = new StringBuilder(CARD_NUMBER_PREFIX);
+        // добавленный код: Генерируем 12 случайных цифр
+        for (int i = 0; i < 12; i++) {
+            cardNumber.append(random.nextInt(10));
+        }
+        // добавленный код: Возвращаем сгенерированный номер карты
+        return cardNumber.toString();
+    }
+
     // добавленный код: Получение карты по ID.
     @Transactional(readOnly = true)
     public CardResponse getCardById(Long id) {
@@ -91,8 +111,7 @@ public class CardService {
     }
 
     // изменил ИИ: Изменена сигнатура метода: добавлен Pageable для поддержки пагинации, возврат изменен на Page<CardResponse> для соответствия контроллеру getMyCards.
-    // изменил ИИ: Внутренняя реализация изменена на использование cardRepository.findByUserId(userId, pageable) для пагинации (предполагая, что репозиторий поддерживает это; если нет, нужно добавить метод в репозитории).
-    // изменил ИИ: Это обеспечивает OCP (открытость для расширения пагинации) и SRP (сервис управляет логикой пагинации).
+    // изменил ИИ: Внутренняя реализация изменена на использование cardRepository.findByUserId(userId, pageable) для пагинации.
     @Transactional(readOnly = true)
     public Page<CardResponse> getUserCards(Long userId, Pageable pageable) {
         log.debug("Запрос всех карт для пользователя ID: {} с пагинацией", userId);
@@ -101,8 +120,6 @@ public class CardService {
     }
 
     // изменил ИИ: Изменена сигнатура метода: удален Pageable, возврат изменен на List<CardResponse> для соответствия контроллеру getAllCards без пагинации.
-    // изменил ИИ: Внутренняя реализация изменена на cardRepository.findAll() без пагинации, с преобразованием в List для простоты админского просмотра.
-    // изменил ИИ: Это упрощает метод для админа, избегая ненужной пагинации, соблюдая SRP.
     @Transactional(readOnly = true)
     public List<CardResponse> getAllCards() {
         log.debug("Запрос всех карт без пагинации");
