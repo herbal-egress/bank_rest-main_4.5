@@ -36,10 +36,9 @@ public class AuthController {
     // Добавленный код: Сервис для обработки аутентификации.
     private final AuthService authService;
 
-    /**
-     * Добавленный код: Эндпоинт для аутентификации пользователя.
-     * Принимает username и password, возвращает JWT токен при успехе.
-     */
+    // Эндпоинт для аутентификации пользователя.
+    // Принимает username и password, возвращает JWT токен при успехе.
+
     @PostMapping(value = "/login", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Аутентификация пользователя",

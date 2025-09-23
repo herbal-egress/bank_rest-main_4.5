@@ -1,5 +1,6 @@
-// config/security/SecurityConfig.java - КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ
 package com.example.bankcards.config.security;
+
+// изменил ИИ: Добавил импорт для существующих классов (уже есть)
 
 import com.example.bankcards.service.auth.UserDetailsService;
 import org.springframework.context.annotation.Bean;
@@ -31,64 +32,50 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
-@Primary // добавленный код: Обеспечивает приоритет этой конфигурации
+@Primary
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
 
-    /**
-     * Добавленный код: КРИТИЧЕСКАЯ ИСПРАВЛЕННАЯ КОНФИГУРАЦИЯ
-     * Порядок правил ВАЖЕН: permitAll ДОЛЖНЫ идти ПЕРВЫМИ!
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("=== КРИТИЧЕСКАЯ НАСТРОЙКА БЕЗОПАСНОСТИ ===");
 
         http
-                // Добавленный код: ОТКЛЮЧАЕМ CSRF ПЕРВЫМ ДЕЛОМ
                 .csrf(csrf -> {
                     log.info("CSRF защита ОТКЛЮЧЕНА");
                     csrf.disable();
                 })
-
-                // Добавленный код: CORS ВТОРЫМ
                 .cors(cors -> {
                     log.info("CORS настроен");
                     cors.configurationSource(corsConfigurationSource());
                 })
-
-                // Добавленный код: SESSION MANAGEMENT ТРЕТЬИМ
                 .sessionManagement(session -> {
                     log.info("Сессии отключены (STATELESS)");
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
-
-                // Добавленный код: КРИТИЧЕСКИЙ ПОРЯДОК ПРАВИЛ АВТОРИЗАЦИИ
                 .authorizeHttpRequests(authz -> authz
-                        // Добавленный код: 1. ПУБЛИЧНЫЕ ЭНДПОИНТЫ (permitAll ПЕРВЫМИ!)
                         .requestMatchers(
-                                "/auth/login",           // ✅ ЛОГИН - ДОЛЖЕН БЫТЬ ПЕРВЫМ!
-                                "/auth/**",              // ✅ Все auth эндпоинты
-                                "/swagger-ui.html",      // ✅ Swagger главная
-                                "/swagger-ui/**",        // ✅ Swagger ресурсы
-                                "/v3/api-docs/**",       // ✅ OpenAPI docs
-                                "/v3/api-docs",          // ✅ OpenAPI главный
-                                "/v3/api-docs.yaml",     // ✅ OpenAPI YAML
-                                "/actuator/health",      // ✅ Health check
-                                "/actuator/**",          // ✅ Все actuator
-                                "/error"                 // ✅  /error в permitAll для обработки ошибок без аутентификации, чтобы избежать 403 при анонимном доступе к /error
+                                "/auth/login",
+                                "/auth/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs.yaml",
+                                "/actuator/health",
+                                "/actuator/**",
+                                "/error"
                         ).permitAll()
 
-                        // Добавленный код: 2. РОЛЕВЫЕ ЭНДПОИНТЫ (ПОСЛЕ permitAll)
+                        // изменил ИИ: Добавил правило для новых эндпоинтов транзакций под /api/user/transactions/**
+                        .requestMatchers("/api/user/transactions/**").hasAnyRole("USER", "ADMIN")
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-
-                        // Добавленный код: 3. ВСЕ ОСТАЛЬНОЕ ТРЕБУЕТ АУТЕНТИФИКАЦИЮ
                         .anyRequest().authenticated()
                 )
-
-                // Добавленный код: JWT ФИЛЬТР ПОСЛЕДНИМ (после authorizeHttpRequests!)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         log.info("=== КОНФИГУРАЦИЯ БЕЗОПАСНОСТИ ПРИМЕНЕНА ===");
@@ -110,9 +97,6 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * Добавленный код: AuthenticationProvider ДОЛЖЕН быть @Bean
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -122,9 +106,6 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * Добавленный код: AuthenticationManager ДОЛЖЕН быть @Bean
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         AuthenticationManager manager = config.getAuthenticationManager();

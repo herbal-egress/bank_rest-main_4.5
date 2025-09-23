@@ -1,0 +1,85 @@
+# src/main/resources/db/changelog/changes/002-initial-schema.yaml
+
+# Миграция для заполнения таблицы cards тестовыми данными: 3 карты для user (id=1), 2 для admin (id=2).
+# Номера карт с заглушкой ("encrypted_XXXX") для совместимости с EncryptionService.
+# Имена владельцев — русские в латинской транскрипции. Все карты ACTIVE.
+# Expiration_date как конец месяца (совместимо с Java YearMonth через YearMonthAttributeConverter).
+databaseChangeLog:
+  - changeSet:
+      id: 10
+      author: system
+      comments: Заполнение таблицы cards тестовыми данными для user и admin
+      changes:
+        # Карта 1 для user (Visa-like)
+        - sql:
+            sql: |
+              INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
+              VALUES (
+                'encrypted_4111111111111111',
+                'Ivan Ivanov',
+                '2026-12-31'::DATE,
+                'ACTIVE',
+                1000.0,
+                1
+              )
+              ON CONFLICT (encrypted_card_number) DO NOTHING;
+
+        # Карта 2 для user (Mastercard-like)
+        - sql:
+            sql: |
+              INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
+              VALUES (
+                'encrypted_5555555555554444',
+                'Anna Petrova',
+                '2025-06-30'::DATE,
+                'ACTIVE',
+                2000.0,
+                1
+              )
+              ON CONFLICT (encrypted_card_number) DO NOTHING;
+
+        # Карта 3 для user (Amex-like)
+        - sql:
+            sql: |
+              INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
+              VALUES (
+                'encrypted_378282246310005',
+                'Mikhail Sidorov',
+                '2027-03-31'::DATE,
+                'ACTIVE',
+                1500.0,
+                1
+              )
+              ON CONFLICT (encrypted_card_number) DO NOTHING;
+
+        # Карта 1 для admin (Visa-like)
+        - sql:
+            sql: |
+              INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
+              VALUES (
+                'encrypted_4111111111112222',
+                'Dmitry Kuznetsov',
+                '2026-09-30'::DATE,
+                'ACTIVE',
+                5000.0,
+                2
+              )
+              ON CONFLICT (encrypted_card_number) DO NOTHING;
+
+        # Карта 2 для admin (Mastercard-like)
+        - sql:
+            sql: |
+              INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
+              VALUES (
+                'encrypted_5555555555553333',
+                'Elena Smirnova',
+                '2025-12-31'::DATE,
+                'ACTIVE',
+                3000.0,
+                2
+              )
+              ON CONFLICT (encrypted_card_number) DO NOTHING;
+
+      rollback:
+        - sql:
+            sql: DELETE FROM cards WHERE user_id IN (1, 2);  # Откат: удаление вставленных карт

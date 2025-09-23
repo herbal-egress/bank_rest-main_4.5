@@ -1,4 +1,3 @@
-// exception/GlobalExceptionHandler.java - ОБРАБОТКА ВСЕХ КАСТОМНЫХ ИСКЛЮЧЕНИЙ
 package com.example.bankcards.exception;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,15 +16,10 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Глобальный обработчик исключений для REST API.
- * Автоматически возвращает JSON с HTTP статусами из @ResponseStatus.
- */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // 4xx ошибки валидации
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -46,7 +40,6 @@ public class GlobalExceptionHandler {
         return errors;
     }
 
-    // 401 ошибки аутентификации
     @ExceptionHandler({AuthenticationException.class, BadCredentialsException.class, InvalidTokenException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public Map<String, Object> handleAuthenticationException(Exception ex) {
@@ -54,7 +47,6 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.UNAUTHORIZED, "Authentication failed", ex.getMessage());
     }
 
-    // 403 ошибки авторизации
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, Object> handleAccessDeniedException(AccessDeniedException ex) {
@@ -62,7 +54,6 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.FORBIDDEN, "Access denied", ex.getMessage());
     }
 
-    // 404 ошибки "не найдено"
     @ExceptionHandler({UserNotFoundException.class, CardNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, Object> handleNotFoundException(RuntimeException ex) {
@@ -70,7 +61,6 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.NOT_FOUND, "Resource not found", ex.getMessage());
     }
 
-    // 409 ошибки конфликтов
     @ExceptionHandler({CardNumberAlreadyExistsException.class, UsernameAlreadyExistsException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, Object> handleConflictException(RuntimeException ex) {
@@ -78,7 +68,6 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage());
     }
 
-    // 400 ошибки бизнес-логики
     @ExceptionHandler({InvalidCardOperationException.class, NegativeBalanceException.class, InvalidRoleException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleBadRequestException(RuntimeException ex) {
@@ -86,7 +75,14 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
-    // Общий обработчик для непредвиденных ошибок
+    // изменил ИИ: Добавил обработку новых исключений для транзакций (400 Bad Request)
+    @ExceptionHandler({InsufficientFundsException.class, SameCardTransferException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleTransactionBadRequestException(RuntimeException ex) {
+        log.warn("Transaction error: {}", ex.getMessage());
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, Object> handleGenericException(Exception ex) {
@@ -94,14 +90,13 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred");
     }
 
-    // Вспомогательный метод для создания стандартного ответа об ошибке
     private Map<String, Object> createErrorResponse(HttpStatus status, String error, String message) {
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now());
         response.put("status", status.value());
         response.put("error", error);
         response.put("message", message);
-        response.put("path", ""); // Можно добавить из RequestContextHolder
+        response.put("path", "");
         return response;
     }
 }

@@ -210,31 +210,6 @@ public class CardController {
 
         return user.getId();
     }
-
-//    @GetMapping("/user/cards/{id}")
-//    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-//    @Operation(
-//            summary = "Получить карту по ID",
-//            description = "Возвращает данные конкретной карты пользователя",
-//            responses = {
-//                    @ApiResponse(responseCode = "200", description = "Данные карты получены",
-//                            content = @Content(schema = @Schema(implementation = CardResponse.class))),
-//                    @ApiResponse(responseCode = "404", description = "Карта не найдена"),
-//                    @ApiResponse(responseCode = "403", description = "Доступ запрещен")
-//            }
-//    )
-//    public ResponseEntity<CardResponse> getMyCardById(
-//            @Parameter(description = "ID карты", example = "1", required = true)
-//            @PathVariable Long id) {
-//        log.info("GET /api/user/cards/{} - Запрос карты пользователя", id);
-//        CardResponse card = cardService.getCardById(id);
-//        return ResponseEntity.ok(card);
-//    }
-
-    // изменил ИИ: Изменен путь эндпоинта на /api/admin/cards/{id}/block для соответствия административным эндпоинтам, как в образце /api/admin/cards, и совместимости с правилами SecurityConfig для /api/admin/**
-    // изменил ИИ: Изменена аннотация @PreAuthorize на hasRole('ADMIN') для ограничения доступа только администраторам, как в образце для админских эндпоинтов, и соответствия SecurityConfig
-    // изменил ИИ: Обновлено summary и description в @Operation для указания на административную операцию, по аналогии с другими админскими методами
-    // изменил ИИ: Обновлен лог для соответствия новому пути и роли
     @PostMapping("/admin/cards/{id}/block")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -255,10 +230,7 @@ public class CardController {
         return ResponseEntity.ok(blockedCard);
     }
 
-    // изменил ИИ: Изменен путь эндпоинта на /api/admin/cards/{id}/activate для соответствия административным эндпоинтам, как в образце /api/admin/cards, и совместимости с правилами SecurityConfig для /api/admin/**
-    // изменил ИИ: Изменена аннотация @PreAuthorize на hasRole('ADMIN') для ограничения доступа только администраторам, как в образце для админских эндпоинтов, и соответствия SecurityConfig
-    // изменил ИИ: Обновлено summary и description в @Operation для указания на административную операцию, по аналогии с другими админскими методами
-    // изменил ИИ: Обновлен лог для соответствия новому пути и роли
+
     @PostMapping("/admin/cards/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
