@@ -85,7 +85,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    public boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
         // Добавленный код: КРИТИЧЕСКИЙ СПИСОК ИСКЛЮЧЕНИЙ - /auth/login ДОЛЖЕН БЫТЬ ПЕРВЫМ!

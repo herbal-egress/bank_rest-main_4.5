@@ -1,8 +1,0 @@
-# src/main/resources/db/changelog/db.changelog-master.yaml
-
-# Добавленный код: Мастер-файл для управления всеми миграциями Liquibase.
-databaseChangeLog:
-  - include:
-      file: db/changelog/changes/001-initial-schema.yaml
-  - include:
-      file: db/changelog/changes/002-initial-schema.yaml
