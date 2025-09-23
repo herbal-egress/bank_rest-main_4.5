@@ -34,6 +34,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 
@@ -287,7 +288,47 @@ public class CardController {
                 "Пользователь %s (id=%d) отправил запрос на блокировку карты номер %s (id=%d)",
                 card.getOwnerName(), currentUserId, card.getMaskedCardNumber(), id);
 
-        // Возвращаем JSON с сообщением
+        // Возвращаю JSON просто с сообщением (для теста функционала)
         return ResponseEntity.ok("{\"message\": \"" + responseMessage + "\"}");
     }
+
+    // добавленный код: Новый эндпоинт для получения баланса карты пользователем
+    @GetMapping("/user/cards/{id}/balance")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Просмотреть баланс своей карты (только юзер)",
+            description = "Возвращает баланс указанной карты, принадлежащей текущему аутентифицированному пользователю",
+            // изменил ИИ: Удалены параметры из @Operation, так как @Parameter указан в аргументе метода
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Баланс карты успешно получен",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Map.class),
+                                    examples = @ExampleObject(
+                                            value = "{\"balance\": 1000.5}"
+                                    )
+                            )),
+                    @ApiResponse(responseCode = "403", description = "Доступ запрещен или карта не принадлежит пользователю"),
+                    @ApiResponse(responseCode = "404", description = "Карта не найдена"),
+                    @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован")
+            }
+    )
+    public ResponseEntity<Map<String, Double>> getCardBalance(
+            // добавленный код: Аннотация для ID карты
+            @Parameter(description = "ID карты для просмотра баланса", example = "1", required = true)
+            @PathVariable Long id) {
+        // добавленный код: Логирование запроса
+        Long currentUserId = getCurrentUserId();
+        log.info("GET /api/user/cards/{}/balance - Запрос баланса карты пользователем ID: {}", id, currentUserId);
+
+        // добавленный код: Получаем данные карты с проверкой принадлежности
+        CardResponse card = cardService.getCardById(id);
+
+        // добавленный код: Формируем JSON-ответ с полем balance
+        Map<String, Double> response = Map.of("balance", card.getBalance());
+
+        // добавленный код: Возвращаем JSON-ответ
+        return ResponseEntity.ok(response);
+    }
+
 }
