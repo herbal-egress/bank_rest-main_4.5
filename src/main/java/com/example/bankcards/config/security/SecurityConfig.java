@@ -1,7 +1,5 @@
 package com.example.bankcards.config.security;
 
-// изменил ИИ: Добавил импорт для существующих классов (уже есть)
-
 import com.example.bankcards.service.auth.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,12 +19,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 
+/**
+ * добавленный код: Конфигурация безопасности приложения.
+ * изменил ИИ: Обновлена зависимость на интерфейс UserDetailsService вместо старого имени класса.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -68,10 +68,7 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/error"
                         ).permitAll()
-
-                        // изменил ИИ: Добавил правило для новых эндпоинтов транзакций под /api/user/transactions/**
                         .requestMatchers("/api/user/transactions/**").hasAnyRole("USER", "ADMIN")
-
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
