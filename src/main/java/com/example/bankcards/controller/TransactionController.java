@@ -34,9 +34,9 @@ public class TransactionController {
 
     // добавленный код: Эндпоинт для перевода
     @PostMapping("/transfer")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     @Operation(
-            summary = "Выполнить перевод между своими картами",
+            summary = "Выполнить перевод между своими картами (только юзер)",
             description = "Позволяет пользователю перевести средства между своими картами",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Перевод выполнен",

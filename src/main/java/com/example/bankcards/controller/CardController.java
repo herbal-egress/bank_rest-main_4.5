@@ -46,7 +46,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 )
 
 /**
- * Добавленный код: REST контроллер для операций с картами.
+ * REST контроллер для операций с картами.
  */
 @RestController
 @RequestMapping("/api")
@@ -159,12 +159,12 @@ public class CardController {
     @GetMapping("/user/cards")
     @PreAuthorize("hasRole('USER')")
     @Operation(
-            summary = "Просмотреть мои карты (пользователь)",
+            summary = "Просмотреть мои карты (только юзер)",
             description = "Возвращает список карт текущего аутентифицированного пользователя с пагинацией",
             parameters = {
-                    @Parameter(name = "page", description = "С какой карты показать (0 - с первой карты)", example = "0", schema = @Schema(type = "integer", defaultValue = "0")),
-                    @Parameter(name = "size", description = "Какое количество карт показать", example = "10", schema = @Schema(type = "integer", defaultValue = "10")),
-                    @Parameter(name = "sort", description = "Поле для сортировки (например, 'id', 'balance')", example = "id", schema = @Schema(type = "string"))
+                    @Parameter(name = "page", description = "Какую страницу показать (0 - первую страницу)"),
+                    @Parameter(name = "size", description = "Сколько карт поместить на странице"),
+                    @Parameter(name = "sort", description = "Поле для сортировки (например, по 'balance'). Пустое поле - сортировка по умолчанию")
             },
             responses = {
                     @ApiResponse(responseCode = "200", description = "Список карт получен",
@@ -178,7 +178,7 @@ public class CardController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sort) {
 
-        // Добавленный код: Получаем ID текущего аутентифицированного пользователя
+        // Получаем ID текущего аутентифицированного пользователя
         Long currentUserId = getCurrentUserId();
         log.info("GET /api/user/cards - Запрос карт текущего пользователя ID: {}, page: {}, size: {}", currentUserId, page, size);
 
@@ -193,7 +193,7 @@ public class CardController {
         return ResponseEntity.ok(cards);
     }
 
-    // Добавленный код: Вспомогательный метод для получения ID текущего пользователя
+    // Вспомогательный метод для получения ID текущего пользователя
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -210,6 +210,7 @@ public class CardController {
 
         return user.getId();
     }
+
     @PostMapping("/admin/cards/{id}/block")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -249,5 +250,44 @@ public class CardController {
         log.info("POST /api/admin/cards/{}/activate - Активация карты администратором", id);
         CardResponse activatedCard = cardService.activateCard(id);
         return ResponseEntity.ok(activatedCard);
+    }
+
+    // Новый эндпоинт для запроса блокировки карты пользователем
+    @PostMapping("/user/cards/{id}/block")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Запросить блокировку своей карты (только юзер)",
+            description = "Аутентифицированный пользователь ТОЛЬКО запрашивает блокировку одной из своих карт по ID (но не блокирует её)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Запрос на блокировку карты успешно сформирован",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = String.class),
+                                    examples = @ExampleObject(
+                                            value = "{\"message\": \"Пользователь JOHN DOE (id=2) отправил запрос на блокировку карты номер **** **** **** 0366 (id=1)\"}"
+                                    )
+                            )),
+                    @ApiResponse(responseCode = "403", description = "Доступ запрещен или карта не принадлежит пользователю"),
+                    @ApiResponse(responseCode = "404", description = "Карта не найдена"),
+                    @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован")
+            }
+    )
+    public ResponseEntity<String> blockUserCard(
+            @Parameter(description = "ID карты для блокировки", example = "1", required = true)
+            @PathVariable Long id) {
+        // Получаем ID текущего пользователя
+        Long currentUserId = getCurrentUserId();
+        log.info("POST /api/user/cards/{}/block - Запрос блокировки карты пользователем ID: {}", id, currentUserId);
+
+        // Получаем данные карты с проверкой принадлежности
+        CardResponse card = cardService.getCardById(id);
+
+        // Формируем ответное сообщение с уже замаскированным номером карты
+        String responseMessage = String.format(
+                "Пользователь %s (id=%d) отправил запрос на блокировку карты номер %s (id=%d)",
+                card.getOwnerName(), currentUserId, card.getMaskedCardNumber(), id);
+
+        // Возвращаем JSON с сообщением
+        return ResponseEntity.ok("{\"message\": \"" + responseMessage + "\"}");
     }
 }
