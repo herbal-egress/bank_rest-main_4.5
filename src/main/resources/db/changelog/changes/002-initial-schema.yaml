@@ -15,7 +15,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
               VALUES (
-                'encrypted_4111111111111111',
+                'encrypted_1231111111111111',
                 'Ivan Ivanov',
                 '2026-12-31'::DATE,
                 'ACTIVE',
@@ -29,7 +29,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
               VALUES (
-                'encrypted_5555555555554444',
+                'encrypted_2345555555554444',
                 'Anna Petrova',
                 '2025-06-30'::DATE,
                 'ACTIVE',
@@ -43,7 +43,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
               VALUES (
-                'encrypted_378282246310005',
+                'encrypted_3458282246310005',
                 'Mikhail Sidorov',
                 '2027-03-31'::DATE,
                 'ACTIVE',
@@ -57,7 +57,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
               VALUES (
-                'encrypted_4111111111112222',
+                'encrypted_4561111111112222',
                 'Dmitry Kuznetsov',
                 '2026-09-30'::DATE,
                 'ACTIVE',
@@ -71,7 +71,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
               VALUES (
-                'encrypted_5555555555553333',
+                'encrypted_5785555555553333',
                 'Elena Smirnova',
                 '2025-12-31'::DATE,
                 'ACTIVE',
