@@ -60,12 +60,3 @@ VALUES (
            2  -- Ссылка на test.users.id=2
        )
 ON CONFLICT (encrypted_card_number) DO NOTHING;
-
--- добавленный код: Отладочная информация после вставки
-DO $$
-    BEGIN
-        RAISE NOTICE 'Вставлено карт в test: %', (SELECT COUNT(*) FROM test.cards);
-    END $$;
-
--- добавленный код: Откат для удаления вставленных карт в test
--- ROLLBACK: DELETE FROM test.cards WHERE user_id IN (1, 2);

@@ -77,10 +77,3 @@ SELECT u.id, r.id
 FROM test.users u, test.roles r
 WHERE u.username = 'admin' AND r.name = 'ADMIN'
 ON CONFLICT (user_id, role_id) DO NOTHING;
-
--- добавленный код: Отладочная информация о созданных пользователях и ролях в схеме test
-DO $$
-    BEGIN
-        RAISE NOTICE 'Создано пользователей в test: %', (SELECT COUNT(*) FROM test.users);
-        RAISE NOTICE 'Назначено ролей в test: %', (SELECT COUNT(*) FROM test.users_roles);
-    END $$;
