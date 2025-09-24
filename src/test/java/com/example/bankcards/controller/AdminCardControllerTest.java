@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,14 +27,14 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// добавленный код: Аннотация @SpringBootTest загружает полный контекст приложения Spring Boot для интеграционного тестирования контроллера
-// добавленный код: @AutoConfigureMockMvc настраивает MockMvc для симуляции HTTP-запросов к контроллеру без запуска сервера
+
 @SpringBootTest
 @AutoConfigureMockMvc
+//@ActiveProfiles("test")
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS, value = "/db/changelog/changes/001-initial-schema-test.sql")
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS, value = "/db/changelog/changes/002-initial-data-test.sql")
 @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/db/changelog/changes/clear-schema-test.sql")
-class AdminCardControllerTest {
+public class AdminCardControllerTest {
 
     // добавленный код: Автосвязывание MockMvc для выполнения запросов к контроллеру
     @Autowired
