@@ -1,56 +1,43 @@
-## добавленный код: Конфигурационный файл для тестового профиля, обеспечивающий создание схемы 'test' и исполнение миграций через Liquibase.
-## добавленный код: Настройка datasource для PostgreSQL, JPA с default_schema: test, и Liquibase с тестовым changelog.
-#server:
-#  port: 0
-#
-#spring:
-#  application:
-#    name: bank-rest
-#
-#  profiles:
-#    active: test
-#
-#---
-#spring:
-#  config:
-#    activate:
-#      on-profile: test
-#  web:
-#    resources:
-#      cache:
-#        period: 0
-#
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/bankdb
-#    username: postgres
-#    password: 123
-#    driver-class-name: org.postgresql.Driver
-#
-#  jpa:
-#    hibernate:
-#      ddl-auto: validate
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#        show_sql: true
-#        format_sql: true
-#        default_schema: test
-#
-#  liquibase:
-#    enabled: true
-#    change-log: classpath:db/changelog/db.changelog-test.xml
-#
-#  springdoc:
-#    swagger-ui:
-#      enabled: false
-#
-#jwt:
-#  secret: 6d9a8f4c2b7e1a3d5f8c9b2a7e4d1f6c3a9b8d7e2f5c1a3d6f9e8b7c4a2d5f1e3c
-#  expiration: 86400000
-#
-#logging:
-#  level:
-#    com.example.bank_rest: INFO
-#    org.springframework.security: WARN
-#    org.hibernate.SQL: DEBUG
-#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+server:
+  port: 0
+
+spring:
+  application:
+    name: bank-rest
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  web:
+    resources:
+      cache:
+        period: 0
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bankdb
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        format_sql: true
+        default_schema: test  # добавленный код: Схема test для JPA.
+
+  liquibase:
+    enabled: true  # добавленный код: Включение Liquibase.
+    change-log: classpath:db/changelog/db.changelog-test.xml  # добавленный код: Changelog для test.
+
+  springdoc:
+    swagger-ui:
+      enabled: false
+
+jwt:
+  secret: 6d9a
