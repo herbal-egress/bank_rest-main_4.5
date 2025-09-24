@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS, value = "/db/changelog/changes/001-initial-schema-test.sql")
 @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS, value = "/db/changelog/changes/002-initial-data-test.sql")
-//@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/db/changelog/changes/clear-schema-test.sql")
+@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS, value = "/db/changelog/changes/clear-schema-test.sql")
 class AdminCardControllerTest {
 
     // добавленный код: Автосвязывание MockMvc для выполнения запросов к контроллеру
