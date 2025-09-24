@@ -1,0 +1,60 @@
+# application-test.yml - Настройки для тестового профиля (дублирует application.yml, но с фокусом на схему 'test')
+spring:
+  application:
+    name: bank-rest
+
+  profiles:
+    active: test  # добавленный код: Активация тестового профиля по умолчанию
+
+---
+# Настройки для тестов (профиль test)
+spring:
+  config:
+    activate:
+      on-profile: test
+  web:
+    resources:
+      cache:
+        period: 0  # Отключаем кэширование ресурсов
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bankdb  # Та же БД, но схема 'test' управляется Liquibase
+    username: postgres
+    password: 123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Не create-drop, Liquibase контролирует
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        format_sql: true
+        default_schema: test  # добавленный код: Указываем схему 'test' для Hibernate (если не в JpaConfig)
+        # изменил ИИ: Добавлено default_schema для тестов; если настроено в JpaConfig, удалите
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-test.xml  # изменил ИИ: Переключение на тестовый changelog
+
+  # Настройки для Swagger/OpenAPI (отключаем для тестов, если не нужно)
+  springdoc:
+    swagger-ui:
+      enabled: false  # добавленный код: Отключаем UI в тестах для скорости
+
+# Настройки JWT (дублируем из main)
+jwt:
+  secret: 6d9a8f4c2b7e1a3d5f8c9b2a7e4d1f6c3a9b8d7e2f5c1a3d6f9e8b7c4a2d5f1e3c
+  expiration: 86400000
+
+# Настройки логирования для тестов (уровень ERROR для скорости)
+logging:
+  level:
+    com.example.bank_rest: INFO  # изменил ИИ: Снижаем с DEBUG для тестов
+    org.springframework.security: WARN
+    org.hibernate.SQL: DEBUG  # Оставляем для БД-отладки
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+server:
+  port: 0  # добавленный код: Рандомный порт для тестов (не конфликтует с main)
