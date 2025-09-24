@@ -39,5 +39,10 @@ spring:
     swagger-ui:
       enabled: false
 
+logging:
+  level:
+    com.example.bankcards: DEBUG
+
 jwt:
-  secret: 6d9a
+  secret: myTestSecretKeyForJWTGenerationWithMinimum256BitsSizeRequiredForHS256Algorithm
+  expiration: 86400000
