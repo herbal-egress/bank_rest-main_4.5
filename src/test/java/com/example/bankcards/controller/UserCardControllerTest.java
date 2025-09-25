@@ -32,6 +32,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.Arrays;
@@ -253,8 +254,10 @@ class UserCardControllerTest {
         verify(userRepository, times(1)).findByUsername("user");
     }
 
+
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
+    @Transactional
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
