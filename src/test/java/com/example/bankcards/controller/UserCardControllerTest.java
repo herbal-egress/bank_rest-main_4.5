@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для создания схемы перед каждым тестом (решает проблему с сохранением состояния между тестами, обеспечивает вставку данных заново)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для вставки данных перед каждым тестом (обеспечивает наличие карт с id=1,2)
-//@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) // изменил ИИ: изменил с AFTER_TEST_CLASS на AFTER_TEST_METHOD для очистки схемы после каждого теста (предотвращает конфликты id от предыдущих запусков)
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) // изменил ИИ: изменил с AFTER_TEST_CLASS на AFTER_TEST_METHOD для очистки схемы после каждого теста (предотвращает конфликты id от предыдущих запусков)
 class UserCardControllerTest {
     @Autowired // изменил ИИ: изменил с @MockBean на @Autowired для transactionRepository, чтобы использовать реальное сохранение в test.transactions
     private TransactionRepository transactionRepository;
@@ -259,9 +259,16 @@ class UserCardControllerTest {
     @WithMockUser(username = "user", roles = {"USER"})
     @Transactional
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
+        // добавленный код: Настраиваем мок для userRepository
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
-        // изменил ИИ: добавил проверку количества всех карт для диагностики вставки (ожидается 5: 3 для user, 2 для admin)
+        // добавленный код: Отладочный вывод состояния базы данных
+        System.out.println("=== Проверка состояния базы данных перед тестом ===");
+        List<Card> allCardsBefore = cardRepository.findAll();
+        System.out.println("Найдено карт в test.cards: " + allCardsBefore.size());
+        allCardsBefore.forEach(card -> System.out.println("Card ID: " + card.getId() + ", User ID: " + card.getUser().getId() + ", Balance: " + card.getBalance()));
+
+        // Проверяем, что карты существуют
         List<Card> allCards = cardRepository.findAll();
         assertEquals(5, allCards.size(), "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
 
@@ -269,6 +276,9 @@ class UserCardControllerTest {
                 .filter(card -> card.getUser().getId() == 1L)
                 .toList();
         assertEquals(3, userCards.size(), "Ожидалось 3 карты для user_id=1 в test.cards");
+
+        // добавленный код: Выводим информацию о картах пользователя
+        userCards.forEach(card -> System.out.println("User Card ID: " + card.getId() + ", Balance: " + card.getBalance()));
 
         Card initialFromCard = userCards.get(0);
         Card initialToCard = userCards.get(1);
@@ -280,6 +290,7 @@ class UserCardControllerTest {
         request.setToCardId(initialToCard.getId());
         request.setAmount(100.0);
 
+        // Выполняем перевод
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -290,12 +301,16 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.amount").value(100.0))
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        Card updatedFromCard = cardRepository.findById(initialFromCard.getId()).orElseThrow(() -> new AssertionError("Карта отправителя не найдена после перевода"));
-        Card updatedToCard = cardRepository.findById(initialToCard.getId()).orElseThrow(() -> new AssertionError("Карта получателя не найдена после перевода"));
+        // Проверяем балансы карт
+        Card updatedFromCard = cardRepository.findById(initialFromCard.getId())
+                .orElseThrow(() -> new AssertionError("Карта отправителя не найдена после перевода"));
+        Card updatedToCard = cardRepository.findById(initialToCard.getId())
+                .orElseThrow(() -> new AssertionError("Карта получателя не найдена после перевода"));
 
         assertEquals(initialFromBalance - 100.0, updatedFromCard.getBalance(), 0.001, "Баланс карты отправителя не уменьшился на 100.0");
         assertEquals(initialToBalance + 100.0, updatedToCard.getBalance(), 0.001, "Баланс карты получателя не увеличился на 100.0");
 
+        // Проверяем, что транзакция сохранена
         List<Transaction> transactions = transactionRepository.findAll();
         assertEquals(1, transactions.size(), "Транзакция не сохранена в test.transactions");
         Transaction savedTransaction = transactions.get(0);
@@ -303,5 +318,11 @@ class UserCardControllerTest {
         assertEquals(initialToCard.getId(), savedTransaction.getToCard().getId());
         assertEquals(100.0, savedTransaction.getAmount());
         assertEquals("SUCCESS", savedTransaction.getStatus().name());
+
+        // добавленный код: Отладочный вывод после теста
+        System.out.println("=== Проверка состояния базы данных после теста ===");
+        List<Card> allCardsAfter = cardRepository.findAll();
+        System.out.println("Найдено карт в test.cards: " + allCardsAfter.size());
+        allCardsAfter.forEach(card -> System.out.println("Card ID: " + card.getId() + ", User ID: " + card.getUser().getId() + ", Balance: " + card.getBalance()));
     }
 }

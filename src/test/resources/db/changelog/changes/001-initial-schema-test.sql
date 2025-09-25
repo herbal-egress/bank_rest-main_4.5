@@ -1,9 +1,6 @@
 -- добавленный код: SQL-скрипт для создания начальной схемы базы данных в схеме 'test' (дублирует 001-initial-schema.sql из public)
 -- Все таблицы создаются с префиксом 'test.' для изоляции от public
 
--- изменил ИИ: добавил DROP SCHEMA IF EXISTS test CASCADE; перед CREATE SCHEMA для полной очистки перед созданием (решает проблему с остатками от предыдущих запусков, если clear-schema-test.sql не сработал)
-DROP SCHEMA IF EXISTS test CASCADE;
-
 -- Создание схемы test, если не существует
 CREATE SCHEMA IF NOT EXISTS test;
 

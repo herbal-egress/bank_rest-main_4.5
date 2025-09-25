@@ -16,7 +16,7 @@ spring:
         period: 0
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/bankdb
+    url: jdbc:postgresql://localhost:5432/bankdb?currentSchema=test
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
