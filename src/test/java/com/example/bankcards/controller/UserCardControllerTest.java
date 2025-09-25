@@ -258,20 +258,23 @@ class UserCardControllerTest {
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
-        // добавленный код: динамически получаем карты для user_id=1 из test.cards, чтобы избежать hardcoded id (решает проблему с BIGSERIAL, если sequence не с 1)
-        List<Card> userCards = cardRepository.findAll().stream()
+        // изменил ИИ: добавил проверку количества всех карт для диагностики вставки (ожидается 5: 3 для user, 2 для admin)
+        List<Card> allCards = cardRepository.findAll();
+        assertEquals(5, allCards.size(), "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
+
+        List<Card> userCards = allCards.stream()
                 .filter(card -> card.getUser().getId() == 1L)
                 .toList();
-        assertEquals(3, userCards.size(), "Ожидалось 3 карты для user_id=1 в test.cards"); // добавленный код: проверка количества карт для user
+        assertEquals(3, userCards.size(), "Ожидалось 3 карты для user_id=1 в test.cards");
 
-        Card initialFromCard = userCards.get(0); // добавленный код: первая карта для перевода
-        Card initialToCard = userCards.get(1); // добавленный код: вторая карта для перевода
+        Card initialFromCard = userCards.get(0);
+        Card initialToCard = userCards.get(1);
         double initialFromBalance = initialFromCard.getBalance();
         double initialToBalance = initialToCard.getBalance();
 
         TransactionRequest request = new TransactionRequest();
-        request.setFromCardId(initialFromCard.getId()); // изменил ИИ: динамический id вместо hardcoded 1L
-        request.setToCardId(initialToCard.getId()); // изменил ИИ: динамический id вместо hardcoded 2L
+        request.setFromCardId(initialFromCard.getId());
+        request.setToCardId(initialToCard.getId());
         request.setAmount(100.0);
 
         mockMvc.perform(post("/api/user/transactions/transfer")
@@ -279,8 +282,8 @@ class UserCardControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.fromCardId").value(initialFromCard.getId().intValue())) // изменил ИИ: проверка динамического id
-                .andExpect(jsonPath("$.toCardId").value(initialToCard.getId().intValue())) // изменил ИИ: проверка динамического id
+                .andExpect(jsonPath("$.fromCardId").value(initialFromCard.getId().intValue()))
+                .andExpect(jsonPath("$.toCardId").value(initialToCard.getId().intValue()))
                 .andExpect(jsonPath("$.amount").value(100.0))
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
