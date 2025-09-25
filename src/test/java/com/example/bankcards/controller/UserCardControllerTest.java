@@ -1,6 +1,8 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.transaction.TransactionResponse;
 import com.example.bankcards.entity.Card;
+import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
 
@@ -18,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean; // добавленный код: импорт для @MockBean (замена @SpyBean для избежания вызова реальных методов при стуббинге)
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -45,15 +47,15 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
-@Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+@Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для создания схемы перед каждым тестом (решает проблему с сохранением состояния между тестами, обеспечивает вставку данных заново)
+@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для вставки данных перед каждым тестом (обеспечивает наличие карт с id=1,2)
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) // изменил ИИ: изменил с AFTER_TEST_CLASS на AFTER_TEST_METHOD для очистки схемы после каждого теста (предотвращает конфликты id от предыдущих запусков)
 class UserCardControllerTest {
-    @MockBean // изменил ИИ: изменил с @SpyBean на @MockBean для transactionRepository (избежание реальных вызовов; в интеграционном тесте не стуббится, использует реальную логику)
+    @Autowired // изменил ИИ: изменил с @MockBean на @Autowired для transactionRepository, чтобы использовать реальное сохранение в test.transactions
     private TransactionRepository transactionRepository;
 
     @Autowired
@@ -61,13 +63,13 @@ class UserCardControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean // изменил ИИ: изменил с @SpyBean на @MockBean для cardService (stub через when.thenReturn; предотвращает вызов реальных методов и SELECT в логах, решает проблему с UserNotFoundException от реальных вызовов)
+    @MockBean
     private CardService cardService;
 
-    @MockBean // изменил ИИ: изменил с @SpyBean на @MockBean для transactionService (stub через when.thenReturn где нужно; в интеграционном тесте не стуббится, использует реальную логику)
+    @Autowired
     private TransactionService transactionService;
 
-    @MockBean // изменил ИИ: изменил с @SpyBean на @MockBean для userRepository (stub через when.thenReturn; предотвращает реальные SELECT и исключения от БД)
+    @MockBean
     private UserRepository userRepository;
 
     @Autowired
@@ -77,7 +79,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user")
     void getUserCards_ShouldReturnUserCards() throws Exception {
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean (стандартный синтаксис для mock, не вызывает реальный метод)
+        
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
         CardResponse card1 = new CardResponse();
@@ -100,7 +102,7 @@ class UserCardControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(cardService.getUserCards(eq(1L), any(Pageable.class))).thenReturn(pageCards);
 
         mockMvc.perform(get("/api/user/cards")
@@ -126,7 +128,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user")
     void getCardById_ShouldReturnCard() throws Exception {
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -137,7 +139,7 @@ class UserCardControllerTest {
         card.setBalance(1000.0);
         card.setStatus(ACTIVE);
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(cardService.getCardById(1L)).thenReturn(card);
 
         mockMvc.perform(get("/api/user/cards/{id}/balance", 1L)
@@ -156,7 +158,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user")
     void getCardById_WithBlockedStatus_ShouldReturnBlockedCard() throws Exception {
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -167,7 +169,7 @@ class UserCardControllerTest {
         card.setBalance(1000.0);
         card.setStatus(BLOCKED);
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(cardService.getCardById(1L)).thenReturn(card);
 
         mockMvc.perform(get("/api/user/cards/{id}/balance", 1L)
@@ -186,7 +188,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "admin")
     void getUserCards_ForUser2_ShouldReturnUser2Cards() throws Exception {
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User(2L, "admin", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -201,7 +203,7 @@ class UserCardControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(cardService.getUserCards(eq(2L), any(Pageable.class))).thenReturn(pageCards);
 
         mockMvc.perform(get("/api/user/cards")
@@ -224,7 +226,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user")
     void blockUserCard_ShouldMessage() throws Exception {
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
         CardResponse cardResponse = new CardResponse();
@@ -232,7 +234,7 @@ class UserCardControllerTest {
         cardResponse.setMaskedCardNumber("**** **** **** 1111");
         cardResponse.setOwnerName("Ivan Ivanov");
 
-        // изменил ИИ: изменил с doReturn на when.thenReturn для совместимости с @MockBean
+        
         when(cardService.getCardById(1L)).thenReturn(cardResponse);
 
         String expectedMessage = String.format(
@@ -254,16 +256,19 @@ class UserCardControllerTest {
     @Test
     @WithMockUser(username = "user")
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
+        when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
         TransactionRequest request = new TransactionRequest();
-        request.setFromCardId(1L);
+        request.setFromCardId(1L); // добавленный код: используем id=1,2 из 002-initial-data-test.sql (первая и вторая карта для user_id=1)
         request.setToCardId(2L);
         request.setAmount(100.0);
 
-        Card initialFromCard = cardRepository.findById(1L).orElseThrow();
-        Card initialToCard = cardRepository.findById(2L).orElseThrow();
+        Card initialFromCard = cardRepository.findById(1L).orElseThrow(() -> new AssertionError("Карта 1 не найдена в test.cards"));
+        Card initialToCard = cardRepository.findById(2L).orElseThrow(() -> new AssertionError("Карта 2 не найдена в test.cards"));
         double initialFromBalance = initialFromCard.getBalance();
         double initialToBalance = initialToCard.getBalance();
+
+        // изменил ИИ: удалил stub when(transactionService.transfer(any(TransactionRequest.class))).thenReturn(response), чтобы использовать реальную логику transfer из TransactionServiceImpl (обновление балансов в test.cards и сохранение в test.transactions)
 
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -273,15 +278,21 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.fromCardId").value(1L))
                 .andExpect(jsonPath("$.toCardId").value(2L))
                 .andExpect(jsonPath("$.amount").value(100.0))
-                .andExpect(jsonPath("$.status").value("SUCCESS"));
+                .andExpect(jsonPath("$.status").value("SUCCESS")); // добавленный код: проверка статуса SUCCESS без id/timestamp, т.к. генерируются в TransactionServiceImpl
 
-        Card updatedFromCard = cardRepository.findById(1L).orElseThrow();
-        Card updatedToCard = cardRepository.findById(2L).orElseThrow();
+        Card updatedFromCard = cardRepository.findById(1L).orElseThrow(() -> new AssertionError("Карта 1 не найдена после перевода"));
+        Card updatedToCard = cardRepository.findById(2L).orElseThrow(() -> new AssertionError("Карта 2 не найдена после перевода"));
 
-        assertEquals(initialFromBalance - 100.0, updatedFromCard.getBalance(), 0.001);
-        assertEquals(initialToBalance + 100.0, updatedToCard.getBalance(), 0.001);
+        assertEquals(initialFromBalance - 100.0, updatedFromCard.getBalance(), 0.001, "Баланс карты отправителя не уменьшился на 100.0");
+        assertEquals(initialToBalance + 100.0, updatedToCard.getBalance(), 0.001, "Баланс карты получателя не увеличился на 100.0");
 
-        // Проверка, что транзакция сохранена
-        // Можно проверить через transactionRepository.count() или найти конкретную транзакцию
+        // добавленный код: проверка записи в test.transactions (реальная таблица, @Autowired)
+        List<Transaction> transactions = transactionRepository.findAll();
+        assertEquals(1, transactions.size(), "Транзакция не сохранена в test.transactions");
+        Transaction savedTransaction = transactions.get(0);
+        assertEquals(1L, savedTransaction.getFromCard().getId());
+        assertEquals(2L, savedTransaction.getToCard().getId());
+        assertEquals(100.0, savedTransaction.getAmount());
+        assertEquals("SUCCESS", savedTransaction.getStatus().name());
     }
 }
