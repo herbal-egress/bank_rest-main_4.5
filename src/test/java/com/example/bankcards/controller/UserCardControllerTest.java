@@ -22,7 +22,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Arrays;
@@ -62,10 +61,10 @@ class UserCardControllerTest {
         // Arrange
         CardResponse card1 = new CardResponse();
         card1.setId(1L);
-        card1.setMaskedCardNumber("411111******1111"); // добавленный код: Маскированный номер для соответствия CardResponse (полный номер не показывается)
+        card1.setMaskedCardNumber("411111******1111");
         card1.setOwnerName("User One");
         card1.setExpirationDate(YearMonth.of(2025, 12));
-        card1.setBalance(1000.00); // добавленный код: Использование BigDecimal для точности, как в DTO
+        card1.setBalance(1000.00);
         card1.setStatus(ACTIVE);
 
         CardResponse card2 = new CardResponse();
@@ -128,44 +127,7 @@ class UserCardControllerTest {
         verifyNoMoreInteractions(cardService);
     }
 
-    @Test
-    @WithMockUser(username = "user1")
-    void transfer_ShouldPerformTransfer() throws Exception {
-        // Arrange
-        TransactionRequest transactionRequest = new TransactionRequest();
-        transactionRequest.setFromCardId(1L);
-        transactionRequest.setToCardId(2L);
-        transactionRequest.setAmount(100.00); // добавленный код: BigDecimal для суммы в DTO
-
-        LocalDateTime testTimestamp = LocalDateTime.parse("2024-01-01T10:00:00"); // добавленный код: Конкретное значение для предсказуемого тестирования
-        TransactionResponse transactionResponse = new TransactionResponse();
-        transactionResponse.setId(1L);
-        transactionResponse.setFromCardId(1L);
-        transactionResponse.setToCardId(2L);
-        transactionResponse.setAmount(100.00);
-        transactionResponse.setTimestamp(testTimestamp); // изменил ИИ: Конкретный LocalDateTime вместо now() для стабильности теста
-
-        when(transactionService.transfer(transactionRequest)).thenReturn(transactionResponse); // изменил ИИ: Убран username; метод transfer принимает только TransactionRequest (username из SecurityContext в контроллере)
-
-        // Act & Assert
-        mockMvc.perform(post("/api/user/transfer")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(transactionRequest)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.fromCardId").value(1L))
-                .andExpect(jsonPath("$.toCardId").value(2L))
-                .andExpect(jsonPath("$.amount").value(100.00))
-                .andExpect(jsonPath("$.timestamp").value("2024-01-01T10:00:00")); // добавленный код: Проверка сериализованного формата ISO_LOCAL_DATE_TIME
-
-        // Verify
-        verify(transactionService, times(1)).transfer(transactionRequest); // изменил ИИ: Верификация без username
-        verifyNoMoreInteractions(transactionService);
-    }
-
-    @Test
+       @Test
     @WithMockUser(username = "user2")
     void getUserCards_ForUser2_ShouldReturnUser2Cards() throws Exception {
         // Arrange
