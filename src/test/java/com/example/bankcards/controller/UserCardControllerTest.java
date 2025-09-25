@@ -1,9 +1,16 @@
 package com.example.bankcards.controller;
+import com.example.bankcards.entity.Card;
+import com.example.bankcards.entity.Transaction;
+import com.example.bankcards.repository.CardRepository;
+import com.example.bankcards.repository.TransactionRepository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.example.bankcards.dto.card.CardResponse;
 import com.example.bankcards.dto.transaction.TransactionRequest;
 import com.example.bankcards.dto.transaction.TransactionResponse;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.repository.CardRepository;
+import com.example.bankcards.repository.TransactionRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.TransactionService;
@@ -43,9 +50,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-//@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 class UserCardControllerTest {
+    @MockBean
+    private TransactionRepository transactionRepository;
 
+    @Autowired
+    private CardRepository cardRepository;
     @Autowired
     private MockMvc mockMvc;
 
@@ -258,37 +269,40 @@ class UserCardControllerTest {
 
     @Test
     @WithMockUser(username = "user1")
-    void transfer_ShouldPerformTransfer() throws Exception {
+    void transfer_ShouldPerformTransfer_Integration() throws Exception {
+        // Убираем моки сервисов для интеграционного тестирования
+        // when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
 
         TransactionRequest request = new TransactionRequest();
         request.setFromCardId(1L);
         request.setToCardId(2L);
         request.setAmount(100.0);
 
-        LocalDateTime timestamp = LocalDateTime.parse("2024-01-01T10:00:00");
-        TransactionResponse response = new TransactionResponse();
-        response.setId(1L);
-        response.setFromCardId(1L);
-        response.setToCardId(2L);
-        response.setAmount(100.0);
-        response.setTimestamp(timestamp);
-        response.setStatus("SUCCESS");
+        // Получаем начальные балансы
+        Card initialFromCard = cardRepository.findById(1L).orElseThrow();
+        Card initialToCard = cardRepository.findById(2L).orElseThrow();
+        double initialFromBalance = initialFromCard.getBalance();
+        double initialToBalance = initialToCard.getBalance();
 
-        when(transactionService.transfer(any(TransactionRequest.class))).thenReturn(response);
-
+        // Выполнение запроса
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.fromCardId").value(1L))
                 .andExpect(jsonPath("$.toCardId").value(2L))
                 .andExpect(jsonPath("$.amount").value(100.0))
-                .andExpect(jsonPath("$.timestamp").value("2024-01-01T10:00:00"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        verify(transactionService, times(1)).transfer(any(TransactionRequest.class));
-        verifyNoMoreInteractions(transactionService);
+        // Проверка изменений баланса
+        Card updatedFromCard = cardRepository.findById(1L).orElseThrow();
+        Card updatedToCard = cardRepository.findById(2L).orElseThrow();
+
+        assertEquals(initialFromBalance - 100.0, updatedFromCard.getBalance(), 0.001);
+        assertEquals(initialToBalance + 100.0, updatedToCard.getBalance(), 0.001);
+
+        // Проверка, что транзакция сохранена
+        // Можно проверить через transactionRepository.count() или найти конкретную транзакцию
     }
-}
+    }
