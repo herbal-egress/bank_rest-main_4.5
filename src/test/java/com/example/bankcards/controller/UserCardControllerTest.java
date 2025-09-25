@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+//@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 class UserCardControllerTest {
 
     @Autowired
@@ -260,7 +260,6 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void transfer_ShouldPerformTransfer() throws Exception {
 
-
         TransactionRequest request = new TransactionRequest();
         request.setFromCardId(1L);
         request.setToCardId(2L);
@@ -289,10 +288,7 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.timestamp").value("2024-01-01T10:00:00"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-
         verify(transactionService, times(1)).transfer(any(TransactionRequest.class));
         verifyNoMoreInteractions(transactionService);
-
-
     }
 }

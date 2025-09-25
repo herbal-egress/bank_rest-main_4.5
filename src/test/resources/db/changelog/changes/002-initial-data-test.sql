@@ -28,7 +28,7 @@ ON CONFLICT (encrypted_card_number) DO NOTHING;
 -- Карта 3 для user (Amex-like)
 INSERT INTO test.cards (encrypted_card_number, owner_name, expiration_date, status, balance, user_id)
 VALUES (
-           'encrypted_345282246310005',
+           'encrypted_3452822463100057',
            'Mikhail Sidorov',
            '2027-03-31'::DATE,
            'ACTIVE',
