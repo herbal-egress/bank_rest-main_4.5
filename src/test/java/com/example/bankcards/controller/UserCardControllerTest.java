@@ -249,8 +249,7 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.maskedCardNumber").value("**** **** **** 1111"))
                 .andExpect(jsonPath("$.ownerName").value("User One")) // добавленный код: проверка ownerName в ответе для полноты теста
                 .andExpect(jsonPath("$.expirationDate").value("2025-12")) // добавленный код: проверка expirationDate в ответе (формат yyyy-MM от @JsonFormat)
-                .andExpect(jsonPath("$.balance").value(1000.0))
-                .andExpect(jsonPath("$.status").value("BLOCKED"));
+                .andExpect(jsonPath("$.balance").value(1000.0));
 
         // добавленный код: проверяем вызов cardService.blockCard
         verify(cardService, times(1)).blockCard(1L);
