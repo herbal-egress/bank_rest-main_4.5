@@ -45,9 +45,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
 )
 
-/**
- * добавленный код: REST контроллер для операций с картами для роли USER.
- */
+
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "Операции с картами (Юзер)", description = "Для аутентифицированного пользователя с ролью USER")
@@ -81,11 +79,11 @@ public class UserCardController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sort) {
-        // добавленный код: Получаем ID текущего пользователя
+        
         Long currentUserId = getCurrentUserId();
         log.info("GET /api/user/cards - Запрос карт текущего пользователя ID: {}, page: {}, size: {}", currentUserId, page, size);
 
-        // добавленный код: Формируем объект пагинации
+        
         Pageable pageable;
         if (sort != null && !sort.isEmpty()) {
             pageable = PageRequest.of(page, size, Sort.by(sort));
@@ -93,7 +91,7 @@ public class UserCardController {
             pageable = PageRequest.of(page, size);
         }
 
-        // добавленный код: Получаем список карт
+        
         Page<CardResponse> cards = cardService.getUserCards(currentUserId, pageable);
         return ResponseEntity.ok(cards);
     }
@@ -120,19 +118,19 @@ public class UserCardController {
     public ResponseEntity<String> blockUserCard(
             @Parameter(description = "ID карты для блокировки", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Получаем ID текущего пользователя
+        
         Long currentUserId = getCurrentUserId();
         log.info("POST /api/user/cards/{}/block - Запрос блокировки карты пользователем ID: {}", id, currentUserId);
 
-        // добавленный код: Получаем данные карты с проверкой принадлежности
+        
         CardResponse card = cardService.getCardById(id);
 
-        // добавленный код: Формируем ответное сообщение
+        
         String responseMessage = String.format(
                 "Пользователь %s (id=%d) отправил запрос на блокировку карты номер %s (id=%d)",
                 card.getOwnerName(), currentUserId, card.getMaskedCardNumber(), id);
 
-        // добавленный код: Возвращаем JSON с сообщением
+        
         return ResponseEntity.ok("{\"message\": \"" + responseMessage + "\"}");
     }
 
@@ -158,17 +156,17 @@ public class UserCardController {
     public ResponseEntity<Map<String, Double>> getCardBalance(
             @Parameter(description = "ID карты для просмотра баланса", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         Long currentUserId = getCurrentUserId();
         log.info("GET /api/user/cards/{}/balance - Запрос баланса карты пользователем ID: {}", id, currentUserId);
 
-        // добавленный код: Получаем данные карты с проверкой принадлежности
+        
         CardResponse card = cardService.getCardById(id);
 
-        // добавленный код: Формируем JSON-ответ с полем balance
+        
         Map<String, Double> response = Map.of("balance", card.getBalance());
 
-        // добавленный код: Возвращаем JSON-ответ
+        
         return ResponseEntity.ok(response);
     }
 
@@ -187,15 +185,15 @@ public class UserCardController {
     )
     public ResponseEntity<TransactionResponse> transfer(
             @Valid @RequestBody TransactionRequest request) {
-        // добавленный код: Логирование запроса
+        
         log.info("POST /api/user/transactions/transfer - Запрос на перевод");
-        // добавленный код: Выполняем перевод через сервис
+        
         TransactionResponse response = transactionService.transfer(request);
-        // добавленный код: Возвращаем ответ с кодом 201
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // добавленный код: Вспомогательный метод для получения ID текущего пользователя
+    
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

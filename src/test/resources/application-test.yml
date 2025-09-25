@@ -29,11 +29,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
         format_sql: true
-        default_schema: test  # добавленный код: Схема test для JPA.
+        default_schema: test  
 
   liquibase:
-    enabled: true  # добавленный код: Включение Liquibase.
-    change-log: classpath:db/changelog/db.changelog-test.xml  # добавленный код: Changelog для test.
+    enabled: true  
+    change-log: classpath:db/changelog/db.changelog-test.xml  
 
   springdoc:
     swagger-ui:

@@ -14,10 +14,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * добавленный код: Реализация сервиса для обработки аутентификации.
- * изменил ИИ: Класс переименован из AuthService в AuthServiceImpl и реализует интерфейс AuthService.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

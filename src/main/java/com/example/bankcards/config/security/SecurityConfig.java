@@ -23,10 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
-/**
- * добавленный код: Конфигурация безопасности приложения.
- * изменил ИИ: Обновлена зависимость на интерфейс UserDetailsService вместо старого имени класса.
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

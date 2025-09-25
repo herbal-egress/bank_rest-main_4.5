@@ -1,4 +1,4 @@
-// config/security/JwtRequestFilter.java
+
 package com.example.bankcards.config.security;
 
 import com.example.bankcards.service.auth.UserDetailsService;
@@ -18,24 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
-/**
- * Добавленный код: Фильтр для проверки JWT токена в каждом HTTP запросе.
- * Извлекает токен из заголовка Authorization, валидирует его и устанавливает аутентификацию.
- */
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    // Добавленный код: Сервис для загрузки пользователей.
+    
     private final UserDetailsService userDetailsService;
 
-    // Добавленный код: Утилита для работы с JWT.
+    
     private final JwtUtil jwtUtil;
 
-    /**
-     * Добавленный код: Основной метод фильтра. Выполняется для каждого запроса один раз.
-     */
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
@@ -43,13 +38,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         final String authorizationHeader = request.getHeader("Authorization");
         String path = request.getRequestURI();
 
-        // Добавленный код: Подробное логирование для отладки доступа к Swagger.
+        
         log.debug("=== JWT ФИЛЬТР ===");
         log.debug("Метод: {}, Путь: {}, Authorization: {}",
                 request.getMethod(), path,
                 authorizationHeader != null ? "присутствует" : "отсутствует");
 
-        // Добавленный код: Логируем, если это запрос к Swagger.
+        
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")) {
             log.debug("ЗАПРОС К SWAGGER: {} - пропускаем JWT фильтр", path);
         }
@@ -88,17 +83,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     public boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        // Добавленный код: КРИТИЧЕСКИЙ СПИСОК ИСКЛЮЧЕНИЙ - /auth/login ДОЛЖЕН БЫТЬ ПЕРВЫМ!
+        
         String[] publicPaths = {
-                "/auth/login",           // ✅ ЛОГИН - САМЫЙ ПЕРВЫЙ!
-                "/auth/**",              // ✅ Все auth пути
-                "/swagger-ui.html",      // ✅ Swagger
-                "/swagger-ui/**",        // ✅ Swagger ресурсы
-                "/v3/api-docs/**",       // ✅ OpenAPI
-                "/v3/api-docs",          // ✅ OpenAPI главный
-                "/v3/api-docs.yaml",     // ✅ OpenAPI YAML
-                "/actuator/health",      // ✅ Health
-                "/actuator/**"           // ✅ Actuator
+                "/auth/login",           
+                "/auth/**",              
+                "/swagger-ui.html",      
+                "/swagger-ui/**",        
+                "/v3/api-docs/**",       
+                "/v3/api-docs",          
+                "/v3/api-docs.yaml",     
+                "/actuator/health",      
+                "/actuator/**"           
         };
 
         for (String publicPath : publicPaths) {

@@ -10,10 +10,7 @@ import lombok.Data;
 
 import java.time.YearMonth;
 
-/**
- * добавленный код: DTO для запроса на создание или обновление карты.
- * изменил ИИ: Удалено поле cardNumber, так как номер карты теперь генерируется автоматически в сервисе.
- */
+
 @Schema(description = "Запрос на создание банковской карты")
 @Data
 public class CardRequest {

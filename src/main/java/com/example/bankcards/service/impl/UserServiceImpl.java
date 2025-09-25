@@ -19,10 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * добавленный код: Реализация сервиса для управления пользователями.
- * изменил ИИ: Класс переименован из UserService в UserServiceImpl и реализует интерфейс UserService.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

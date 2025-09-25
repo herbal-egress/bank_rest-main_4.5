@@ -1,4 +1,4 @@
-// AdminControllerTest.java
+
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.user.UserRequest;
@@ -47,7 +47,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void getAllUsers_ShouldReturnUsersList() throws Exception {
-        // Arrange
+        
         UserResponse user1 = new UserResponse();
         user1.setId(1L);
         user1.setUsername("user1");
@@ -62,7 +62,7 @@ class AdminControllerTest {
 
         when(userService.getAllUsers()).thenReturn(users);
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/admin/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -72,7 +72,7 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].username").value("admin"));
 
-        // Verify
+        
         verify(userService, times(1)).getAllUsers();
         verifyNoMoreInteractions(userService);
     }
@@ -80,7 +80,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void getUserById_ShouldReturnUser() throws Exception {
-        // Arrange
+        
         UserResponse user = new UserResponse();
         user.setId(1L);
         user.setUsername("user1");
@@ -88,7 +88,7 @@ class AdminControllerTest {
 
         when(userService.getUserById(1L)).thenReturn(user);
 
-        // Act & Assert
+        
         mockMvc.perform(get("/api/admin/users/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -96,7 +96,7 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.username").value("user1"));
 
-        // Verify
+        
         verify(userService, times(1)).getUserById(1L);
         verifyNoMoreInteractions(userService);
     }
@@ -104,7 +104,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void createUser_ShouldCreateUser() throws Exception {
-        // Arrange
+        
         UserRequest userRequest = new UserRequest();
         userRequest.setUsername("newuser");
         userRequest.setPassword("password123");
@@ -117,7 +117,7 @@ class AdminControllerTest {
 
         when(userService.createUser(any(UserRequest.class))).thenReturn(userResponse);
 
-        // Act & Assert
+        
         mockMvc.perform(post("/api/admin/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,9 +126,9 @@ class AdminControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(3L))
                 .andExpect(jsonPath("$.username").value("newuser"));
-        // изменил ИИ: Удалена проверка header().exists("Location"), так как контроллер не возвращает этот заголовок в ResponseEntity
+        
 
-        // Verify
+        
         verify(userService, times(1)).createUser(any(UserRequest.class));
         verifyNoMoreInteractions(userService);
     }
@@ -136,7 +136,7 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void updateUser_ShouldUpdateUser() throws Exception {
-        // Arrange
+        
         UserRequest userRequest = new UserRequest();
         userRequest.setUsername("updateduser");
         userRequest.setPassword("newpassword123");
@@ -149,7 +149,7 @@ class AdminControllerTest {
 
         when(userService.updateUser(anyLong(), any(UserRequest.class))).thenReturn(userResponse);
 
-        // Act & Assert
+        
         mockMvc.perform(put("/api/admin/users/{id}", 1L)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +159,7 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.username").value("updateduser"));
 
-        // Verify
+        
         verify(userService, times(1)).updateUser(eq(1L), any(UserRequest.class));
         verifyNoMoreInteractions(userService);
     }
@@ -167,16 +167,16 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
     void deleteUser_ShouldDeleteUser() throws Exception {
-        // Arrange
+        
         doNothing().when(userService).deleteUser(1L);
 
-        // Act & Assert
+        
         mockMvc.perform(delete("/api/admin/users/{id}", 1L)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        // Verify
+        
         verify(userService, times(1)).deleteUser(1L);
         verifyNoMoreInteractions(userService);
     }
@@ -184,12 +184,12 @@ class AdminControllerTest {
     @Test
     @WithMockUser(username = "user1", roles = "USER")
     void getAllUsers_WithUserRole_ShouldReturnForbidden() throws Exception {
-        // Act & Assert
+        
         mockMvc.perform(get("/api/admin/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
 
-        // Verify
+        
         verifyNoInteractions(userService);
     }
 }

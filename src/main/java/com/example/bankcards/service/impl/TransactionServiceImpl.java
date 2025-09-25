@@ -24,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * добавленный код: Реализация сервиса для обработки транзакций.
- * изменил ИИ: Класс переименован из TransactionService в TransactionServiceImpl и реализует интерфейс TransactionService.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -113,21 +110,21 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new com.example.bankcards.exception.UserNotFoundException("Пользователь не найден"));
         return user.getId();
     }
-    // добавленный код: Реализация метода getCardTransactions для получения транзакций по карте
+    
     @Override
     @Transactional(readOnly = true)
     public List<TransactionResponse> getCardTransactions(String username, Long cardId) {
-        // добавленный код: Проверка существования карты и её принадлежности пользователю
+        
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + cardId + " not found"));
         if (!card.getUser().getUsername().equals(username)) {
             throw new CardNotFoundException("Card with id " + cardId + " does not belong to user " + username);
         }
 
-        // добавленный код: Получение всех транзакций, где карта является отправителем или получателем
+        
         List<Transaction> transactions = transactionRepository.findByFromCardIdOrToCardId(cardId, cardId);
 
-        // добавленный код: Конвертация сущностей Transaction в DTO TransactionResponse
+        
         return transactions.stream()
                 .map(transaction -> {
                     TransactionResponse response = new TransactionResponse();

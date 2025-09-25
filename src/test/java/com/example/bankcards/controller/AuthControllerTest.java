@@ -39,7 +39,7 @@ class AuthControllerTest {
 
     @Test
     void authenticate_ShouldReturnToken() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("user1");
         authRequest.setPassword("password1");
@@ -53,7 +53,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse);
 
-        // Act & Assert
+        
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
@@ -64,14 +64,14 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt-token-here"))
                 .andExpect(jsonPath("$.type").value("Bearer"));
 
-        // Verify
+        
         verify(authService, times(1)).authenticate(any(AuthRequest.class));
         verifyNoMoreInteractions(authService);
     }
 
     @Test
     void authenticate_WithInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("user1");
         authRequest.setPassword("wrongpassword");
@@ -79,58 +79,58 @@ class AuthControllerTest {
         when(authService.authenticate(any(AuthRequest.class)))
                 .thenThrow(new com.example.bankcards.exception.AuthenticationException("Invalid credentials"));
 
-        // Act & Assert
+        
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
                 .andExpect(status().isUnauthorized());
 
-        // Verify
+        
         verify(authService, times(1)).authenticate(any(AuthRequest.class));
         verifyNoMoreInteractions(authService);
     }
 
     @Test
     void authenticate_WithEmptyUsername_ShouldReturnBadRequest() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("");
         authRequest.setPassword("password1");
 
-        // Act & Assert
+        
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
-                .andExpect(status().isBadRequest())  // изменил ИИ: Изменено ожидание статуса с 403 на 400, так как валидация @NotBlank возвращает Bad Request через GlobalExceptionHandler
+                .andExpect(status().isBadRequest())  
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.fieldErrors.username").value("Имя пользователя не может быть пустым"));  // добавленный код: Проверка тела ответа на ошибку валидации для username
+                .andExpect(jsonPath("$.fieldErrors.username").value("Имя пользователя не может быть пустым"));  
 
-        // Verify
+        
         verifyNoInteractions(authService);
     }
 
     @Test
     void authenticate_WithEmptyPassword_ShouldReturnBadRequest() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("user1");
         authRequest.setPassword("");
 
-        // Act & Assert
+        
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
-                .andExpect(status().isBadRequest())  // изменил ИИ: Изменено ожидание статуса с 403 на 400, так как валидация @NotBlank возвращает Bad Request через GlobalExceptionHandler
+                .andExpect(status().isBadRequest())  
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.fieldErrors.password").value("Пароль не может быть пустым"));  // добавленный код: Проверка тела ответа на ошибку валидации для password
+                .andExpect(jsonPath("$.fieldErrors.password").value("Пароль не может быть пустым"));  
 
-        // Verify
+        
         verifyNoInteractions(authService);
     }
 
     @Test
     void authenticate_WithAdminUser_ShouldReturnAdminRole() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("admin");
         authRequest.setPassword("adminpass");
@@ -144,7 +144,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse);
 
-        // Act & Assert
+        
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
@@ -155,14 +155,14 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt-token-admin"))
                 .andExpect(jsonPath("$.type").value("Bearer"));
 
-        // Verify
+        
         verify(authService, times(1)).authenticate(any(AuthRequest.class));
         verifyNoMoreInteractions(authService);
     }
 
     @Test
     void register_ShouldReturnToken() throws Exception {
-        // Arrange
+        
         AuthRequest authRequest = new AuthRequest();
         authRequest.setUsername("newuser");
         authRequest.setPassword("newpassword");
@@ -174,10 +174,10 @@ class AuthControllerTest {
         authResponse.setType("Bearer");
         authResponse.setExpiration(System.currentTimeMillis() + 3600000);
 
-        when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse); // добавленный код: Мокирование AuthService.authenticate для эндпоинта /auth/login
+        when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse); 
 
-        // Act & Assert
-        mockMvc.perform(post("/auth/login") // изменил ИИ: Изменён эндпоинт с /auth/register на /auth/login, так как /auth/register отсутствует в AuthController
+        
+        mockMvc.perform(post("/auth/login") 
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
                 .andExpect(status().isOk())
@@ -186,8 +186,8 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.roles[0]").value("ROLE_USER"))
                 .andExpect(jsonPath("$.token").value("jwt-token-new"));
 
-        // Verify
-        verify(authService, times(1)).authenticate(any(AuthRequest.class)); // добавленный код: Проверка вызова метода authenticate
+        
+        verify(authService, times(1)).authenticate(any(AuthRequest.class)); 
         verifyNoMoreInteractions(authService);
     }
 }

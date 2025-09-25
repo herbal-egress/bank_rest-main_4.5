@@ -1,15 +1,15 @@
 package com.example.bankcards.entity;
 
-// изменил ИИ: Добавил импорт List для коллекций
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.YearMonth;
 
-// изменил ИИ: Добавил импорт Transaction для связи
+
 import com.example.bankcards.entity.Transaction;
-// изменил ИИ: Добавил импорт OneToMany, CascadeType, MappedBy
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,11 +60,11 @@ public class Card {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // изменил ИИ: Добавил связь OneToMany для транзакций от этой карты (ленивая загрузка, каскад для удаления)
+    
     @OneToMany(mappedBy = "fromCard", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactionsFrom = new ArrayList<>();
 
-    // изменил ИИ: Добавил связь OneToMany для транзакций на эту карту (ленивая загрузка, каскад для удаления)
+    
     @OneToMany(mappedBy = "toCard", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactionsTo = new ArrayList<>();
 

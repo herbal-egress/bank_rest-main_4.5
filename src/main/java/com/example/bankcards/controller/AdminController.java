@@ -32,9 +32,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
 )
 
-/**
- * добавленный код: REST контроллер для операций управления пользователями для роли ADMIN.
- */
+
 @RestController
 @RequestMapping("/api/admin/users")
 @Tag(name = "Управление пользователями (Админ)", description = "Для CRUD с пользователями приложения")
@@ -68,11 +66,11 @@ public class AdminController {
             }
     )
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        // добавленный код: Логирование запроса
+        
         log.info("POST /api/admin/users - Создание пользователя");
-        // добавленный код: Создаем пользователя через сервис
+        
         UserResponse createdUser = userService.createUser(userRequest);
-        // добавленный код: Возвращаем ответ с кодом 201
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
@@ -91,11 +89,11 @@ public class AdminController {
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         log.info("GET /api/admin/users/{} - Запрос пользователя", id);
-        // добавленный код: Получаем пользователя через сервис
+        
         UserResponse user = userService.getUserById(id);
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(user);
     }
 
@@ -111,11 +109,11 @@ public class AdminController {
             }
     )
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        // добавленный код: Логирование запроса
+        
         log.info("GET /api/admin/users - Запрос всех пользователей");
-        // добавленный код: Получаем список пользователей
+        
         List<UserResponse> users = userService.getAllUsers();
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(users);
     }
 
@@ -147,11 +145,11 @@ public class AdminController {
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id,
             @Valid @RequestBody UserRequest userRequest) {
-        // добавленный код: Логирование запроса
+        
         log.info("PUT /api/admin/users/{} - Обновление пользователя", id);
-        // добавленный код: Обновляем пользователя через сервис
+        
         UserResponse updatedUser = userService.updateUser(id, userRequest);
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -169,11 +167,11 @@ public class AdminController {
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         log.info("DELETE /api/admin/users/{} - Удаление пользователя", id);
-        // добавленный код: Удаляем пользователя через сервис
+        
         userService.deleteUser(id);
-        // добавленный код: Возвращаем ответ с кодом 204
+        
         return ResponseEntity.noContent().build();
     }
 }

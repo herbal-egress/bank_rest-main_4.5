@@ -28,10 +28,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * добавленный код: Реализация сервиса для управления банковскими картами.
- * изменил ИИ: Класс переименован из CardService в CardServiceImpl и реализует интерфейс CardService.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j

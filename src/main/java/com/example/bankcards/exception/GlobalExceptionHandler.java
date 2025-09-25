@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
     }
 
-    // изменил ИИ: Добавил обработку новых исключений для транзакций (400 Bad Request)
+    
     @ExceptionHandler({InsufficientFundsException.class, SameCardTransferException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleTransactionBadRequestException(RuntimeException ex) {

@@ -12,8 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Можно добавить volume для init скриптов, если нужно создать расширения (например, для pgcrypto)
-      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      
+      
     networks:
       - bank_network
 

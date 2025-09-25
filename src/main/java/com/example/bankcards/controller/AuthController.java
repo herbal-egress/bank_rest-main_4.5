@@ -1,4 +1,4 @@
-// controller/AuthController.java
+
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.auth.AuthRequest;
@@ -22,10 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-/**
- * Добавленный код: REST контроллер для обработки запросов аутентификации.
- * Предоставляет эндпоинт для логина и получения JWT токена.
- */
+
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Аутентификация", description = "Для генерации токена по логину/паролю (admin/admin, user/user)")
@@ -33,11 +30,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class AuthController {
 
-    // Добавленный код: Сервис для обработки аутентификации.
+    
     private final AuthService authService;
 
-    // Эндпоинт для аутентификации пользователя.
-    // Принимает username и password, возвращает JWT токен при успехе.
+    
+    
 
     @PostMapping(value = "/login", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @Operation(

@@ -1,4 +1,4 @@
-// dto/user/UserRequest.java
+
 package com.example.bankcards.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,10 +7,7 @@ import lombok.Data;
 
 import java.util.Set;
 
-/**
- * Добавленный код: DTO для запроса на создание или обновление пользователя.
- * Содержит данные, приходящие от клиента.
- */
+
 @Data
 public class UserRequest {
 
@@ -21,6 +18,6 @@ public class UserRequest {
     @NotBlank(message = "Пароль не может быть пустым")
     private String password;
 
-    // Добавленный код: Роли пользователя. Для ADMIN можно назначить роли, для USER обычно только "USER".
+    
     private Set<String> roles;
 }

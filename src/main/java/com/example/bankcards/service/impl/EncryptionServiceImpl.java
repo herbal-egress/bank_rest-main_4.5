@@ -4,10 +4,7 @@ import com.example.bankcards.service.EncryptionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * добавленный код: Реализация сервиса для шифрования/дешифрования данных.
- * изменил ИИ: Класс переименован из EncryptionService в EncryptionServiceImpl и реализует интерфейс EncryptionService.
- */
+
 @Service
 @Slf4j
 public class EncryptionServiceImpl implements EncryptionService {

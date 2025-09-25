@@ -8,13 +8,10 @@ import lombok.Data;
 
 import java.time.YearMonth;
 
-/**
- * добавленный код: DTO для запроса на обновление карты.
- * изменил ИИ: Удалено поле cardNumber, так как номер карты теперь генерируется автоматически и не редактируется.
- */
+
 @Schema(description = "Запрос на обновление банковской карты")
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL) // добавленный код: Игнорирует null поля
+@JsonInclude(JsonInclude.Include.NON_NULL) 
 public class CardUpdateRequest {
 
     @Schema(description = "Новое имя владельца карты (верхний регистр, макс. 50 символов). Опционально для обновления",

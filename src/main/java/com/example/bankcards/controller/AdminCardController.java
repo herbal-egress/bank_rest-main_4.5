@@ -33,9 +33,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
 )
 
-/**
- * добавленный код: REST контроллер для операций с картами для роли ADMIN.
- */
+
 @RestController
 @RequestMapping("/api/admin")
 @Tag(name = "Операции с картами (Админ)", description = "Для аутентифицированного пользователя с ролью ADMIN")
@@ -69,11 +67,11 @@ public class AdminCardController {
             }
     )
     public ResponseEntity<CardResponse> createCard(@Valid @RequestBody CardRequest cardRequest) {
-        // добавленный код: Логирование запроса
+        
         log.info("POST /api/admin/cards - Создание карты администратором");
-        // добавленный код: Создаем карту через сервис
+        
         CardResponse createdCard = cardService.createCard(cardRequest);
-        // добавленный код: Возвращаем ответ с кодом 201
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCard);
     }
 
@@ -89,11 +87,11 @@ public class AdminCardController {
             }
     )
     public ResponseEntity<List<CardResponse>> getAllCards() {
-        // добавленный код: Логирование запроса
+        
         log.info("GET /api/admin/cards - Запрос всех карт администратором");
-        // добавленный код: Получаем список карт
+        
         List<CardResponse> cards = cardService.getAllCards();
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(cards);
     }
 
@@ -125,11 +123,11 @@ public class AdminCardController {
             @Parameter(description = "ID карты", example = "1", required = true)
             @PathVariable Long id,
             @Valid @RequestBody CardUpdateRequest cardUpdateRequest) {
-        // добавленный код: Логирование запроса
+        
         log.info("PUT /api/admin/cards/{} - Обновление карты администратором", id);
-        // добавленный код: Обновляем карту через сервис
+        
         CardResponse updatedCard = cardService.updateCard(id, cardUpdateRequest);
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(updatedCard);
     }
 
@@ -147,11 +145,11 @@ public class AdminCardController {
     public ResponseEntity<Void> deleteCard(
             @Parameter(description = "ID карты для удаления", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         log.info("DELETE /api/admin/cards/{} - Удаление карты администратором", id);
-        // добавленный код: Удаляем карту через сервис
+        
         cardService.deleteCard(id);
-        // добавленный код: Возвращаем ответ с кодом 204
+        
         return ResponseEntity.noContent().build();
     }
 
@@ -170,11 +168,11 @@ public class AdminCardController {
     public ResponseEntity<CardResponse> blockCard(
             @Parameter(description = "ID карты для блокировки", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         log.info("POST /api/admin/cards/{}/block - Блокировка карты администратором", id);
-        // добавленный код: Блокируем карту через сервис
+        
         CardResponse blockedCard = cardService.blockCard(id);
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(blockedCard);
     }
 
@@ -193,11 +191,11 @@ public class AdminCardController {
     public ResponseEntity<CardResponse> activateCard(
             @Parameter(description = "ID карты для активации", example = "1", required = true)
             @PathVariable Long id) {
-        // добавленный код: Логирование запроса
+        
         log.info("POST /api/admin/cards/{}/activate - Активация карты администратором", id);
-        // добавленный код: Активируем карту через сервис
+        
         CardResponse activatedCard = cardService.activateCard(id);
-        // добавленный код: Возвращаем ответ
+        
         return ResponseEntity.ok(activatedCard);
     }
 }

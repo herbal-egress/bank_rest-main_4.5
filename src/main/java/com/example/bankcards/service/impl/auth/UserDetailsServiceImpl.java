@@ -10,11 +10,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * добавленный код: Реализация сервиса для загрузки пользовательских данных.
- * изменил ИИ: Класс переименован из UserDetailsService в UserDetailsServiceImpl и реализует интерфейс UserDetailsService.
- * изменил ИИ: Добавлена аннотация @Primary для избежания конфликта бинов в Spring Security.
- */
+
 @Service
 @Primary
 @RequiredArgsConstructor

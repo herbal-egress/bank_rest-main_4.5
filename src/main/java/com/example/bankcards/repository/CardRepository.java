@@ -1,4 +1,4 @@
-// repository/CardRepository.java
+
 package com.example.bankcards.repository;
 
 import com.example.bankcards.entity.Card;
@@ -12,9 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Добавленный код: Репозиторий для работы с сущностью Card.
- */
+
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> {
 
