@@ -24,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-//@ActiveProfiles("test")
-//@TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
+@ActiveProfiles("test")
+@TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
