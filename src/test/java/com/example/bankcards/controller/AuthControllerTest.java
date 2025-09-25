@@ -97,11 +97,13 @@ class AuthControllerTest {
         authRequest.setUsername("");
         authRequest.setPassword("password1");
 
-        // Act & Assert - Spring Security блокирует пустые поля до валидации, поэтому ожидаем 403
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest())  // изменил ИИ: Изменено ожидание статуса с 403 на 400, так как валидация @NotBlank возвращает Bad Request через GlobalExceptionHandler
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.fieldErrors.username").value("Имя пользователя не может быть пустым"));  // добавленный код: Проверка тела ответа на ошибку валидации для username
 
         // Verify
         verifyNoInteractions(authService);
@@ -114,11 +116,13 @@ class AuthControllerTest {
         authRequest.setUsername("user1");
         authRequest.setPassword("");
 
-        // Act & Assert - Spring Security блокирует пустые поля до валидации, поэтому ожидаем 403
+        // Act & Assert
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest())  // изменил ИИ: Изменено ожидание статуса с 403 на 400, так как валидация @NotBlank возвращает Bad Request через GlobalExceptionHandler
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.fieldErrors.password").value("Пароль не может быть пустым"));  // добавленный код: Проверка тела ответа на ошибку валидации для password
 
         // Verify
         verifyNoInteractions(authService);
@@ -170,7 +174,7 @@ class AuthControllerTest {
         authResponse.setType("Bearer");
         authResponse.setExpiration(System.currentTimeMillis() + 3600000);
 
-        when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse);
+        when(authService.authenticate(any(AuthRequest.class))).thenReturn(authResponse); // изменил ИИ: Изменено мокирование с register на authenticate, так как AuthService содержит только метод authenticate
 
         // Act & Assert
         mockMvc.perform(post("/auth/register")
@@ -183,7 +187,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.token").value("jwt-token-new"));
 
         // Verify
-//        verify(authService, times(1)).register(any(AuthRequest.class));
+        verify(authService, times(1)).authenticate(any(AuthRequest.class)); // изменил ИИ: Изменено verify с register на authenticate для соответствия текущему интерфейсу AuthService
         verifyNoMoreInteractions(authService);
     }
 }
