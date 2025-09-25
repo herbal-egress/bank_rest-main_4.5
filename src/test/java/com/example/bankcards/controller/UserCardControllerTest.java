@@ -47,13 +47,13 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для создания схемы перед каждым тестом (решает проблему с сохранением состояния между тестами, обеспечивает вставку данных заново)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) // изменил ИИ: изменил с BEFORE_TEST_CLASS на BEFORE_TEST_METHOD для вставки данных перед каждым тестом (обеспечивает наличие карт с id=1,2)
-@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) // изменил ИИ: изменил с AFTER_TEST_CLASS на AFTER_TEST_METHOD для очистки схемы после каждого теста (предотвращает конфликты id от предыдущих запусков)
+//@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) // изменил ИИ: изменил с AFTER_TEST_CLASS на AFTER_TEST_METHOD для очистки схемы после каждого теста (предотвращает конфликты id от предыдущих запусков)
 class UserCardControllerTest {
     @Autowired // изменил ИИ: изменил с @MockBean на @Autowired для transactionRepository, чтобы использовать реальное сохранение в test.transactions
     private TransactionRepository transactionRepository;
@@ -254,44 +254,47 @@ class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "user", roles = {"USER"})
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
 
-        TransactionRequest request = new TransactionRequest();
-        request.setFromCardId(1L); // добавленный код: используем id=1,2 из 002-initial-data-test.sql (первая и вторая карта для user_id=1)
-        request.setToCardId(2L);
-        request.setAmount(100.0);
+        // добавленный код: динамически получаем карты для user_id=1 из test.cards, чтобы избежать hardcoded id (решает проблему с BIGSERIAL, если sequence не с 1)
+        List<Card> userCards = cardRepository.findAll().stream()
+                .filter(card -> card.getUser().getId() == 1L)
+                .toList();
+        assertEquals(3, userCards.size(), "Ожидалось 3 карты для user_id=1 в test.cards"); // добавленный код: проверка количества карт для user
 
-        Card initialFromCard = cardRepository.findById(1L).orElseThrow(() -> new AssertionError("Карта 1 не найдена в test.cards"));
-        Card initialToCard = cardRepository.findById(2L).orElseThrow(() -> new AssertionError("Карта 2 не найдена в test.cards"));
+        Card initialFromCard = userCards.get(0); // добавленный код: первая карта для перевода
+        Card initialToCard = userCards.get(1); // добавленный код: вторая карта для перевода
         double initialFromBalance = initialFromCard.getBalance();
         double initialToBalance = initialToCard.getBalance();
 
-        // изменил ИИ: удалил stub when(transactionService.transfer(any(TransactionRequest.class))).thenReturn(response), чтобы использовать реальную логику transfer из TransactionServiceImpl (обновление балансов в test.cards и сохранение в test.transactions)
+        TransactionRequest request = new TransactionRequest();
+        request.setFromCardId(initialFromCard.getId()); // изменил ИИ: динамический id вместо hardcoded 1L
+        request.setToCardId(initialToCard.getId()); // изменил ИИ: динамический id вместо hardcoded 2L
+        request.setAmount(100.0);
 
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.fromCardId").value(1L))
-                .andExpect(jsonPath("$.toCardId").value(2L))
+                .andExpect(jsonPath("$.fromCardId").value(initialFromCard.getId().intValue())) // изменил ИИ: проверка динамического id
+                .andExpect(jsonPath("$.toCardId").value(initialToCard.getId().intValue())) // изменил ИИ: проверка динамического id
                 .andExpect(jsonPath("$.amount").value(100.0))
-                .andExpect(jsonPath("$.status").value("SUCCESS")); // добавленный код: проверка статуса SUCCESS без id/timestamp, т.к. генерируются в TransactionServiceImpl
+                .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        Card updatedFromCard = cardRepository.findById(1L).orElseThrow(() -> new AssertionError("Карта 1 не найдена после перевода"));
-        Card updatedToCard = cardRepository.findById(2L).orElseThrow(() -> new AssertionError("Карта 2 не найдена после перевода"));
+        Card updatedFromCard = cardRepository.findById(initialFromCard.getId()).orElseThrow(() -> new AssertionError("Карта отправителя не найдена после перевода"));
+        Card updatedToCard = cardRepository.findById(initialToCard.getId()).orElseThrow(() -> new AssertionError("Карта получателя не найдена после перевода"));
 
         assertEquals(initialFromBalance - 100.0, updatedFromCard.getBalance(), 0.001, "Баланс карты отправителя не уменьшился на 100.0");
         assertEquals(initialToBalance + 100.0, updatedToCard.getBalance(), 0.001, "Баланс карты получателя не увеличился на 100.0");
 
-        // добавленный код: проверка записи в test.transactions (реальная таблица, @Autowired)
         List<Transaction> transactions = transactionRepository.findAll();
         assertEquals(1, transactions.size(), "Транзакция не сохранена в test.transactions");
         Transaction savedTransaction = transactions.get(0);
-        assertEquals(1L, savedTransaction.getFromCard().getId());
-        assertEquals(2L, savedTransaction.getToCard().getId());
+        assertEquals(initialFromCard.getId(), savedTransaction.getFromCard().getId());
+        assertEquals(initialToCard.getId(), savedTransaction.getToCard().getId());
         assertEquals(100.0, savedTransaction.getAmount());
         assertEquals("SUCCESS", savedTransaction.getStatus().name());
     }

@@ -4,8 +4,7 @@
 -- Создание схемы test, если не существует
 CREATE SCHEMA IF NOT EXISTS test;
 
--- добавленный код: Создание расширения pgcrypto для шифрования (глобально, не в схеме)
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- изменил ИИ: удалил CREATE EXTENSION IF NOT EXISTS pgcrypto, т.к. тестовые данные не используют шифрование (encrypted_card_number - строка); это предотвращает сбой скрипта из-за прав суперпользователя
 
 -- Создание таблицы roles в схеме test
 CREATE TABLE IF NOT EXISTS test.roles (
