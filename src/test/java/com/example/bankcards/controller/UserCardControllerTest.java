@@ -1,10 +1,10 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.card.CardResponse;
-import com.example.bankcards.dto.transaction.TransactionRequest; // добавленный код: импортируем TransactionRequest для теста transfer
-import com.example.bankcards.dto.transaction.TransactionResponse; // добавленный код: импортируем TransactionResponse для теста transfer
-import com.example.bankcards.entity.User; // добавленный код: импортируем User для мока в userRepository
-import com.example.bankcards.repository.UserRepository; // добавленный код: импортируем UserRepository для @MockBean
+import com.example.bankcards.dto.transaction.TransactionRequest;
+import com.example.bankcards.dto.transaction.TransactionResponse;
+import com.example.bankcards.entity.User;
+import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.TransactionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,12 +24,12 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime; // добавленный код: импортируем LocalDateTime для timestamp в TransactionResponse
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Arrays;
-import java.util.HashSet; // добавленный код: импортируем HashSet для пустых ролей в User
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional; // добавленный код: импортируем Optional для мока findByUsername
+import java.util.Optional;
 
 import static com.example.bankcards.entity.Card.Status.ACTIVE;
 import static com.example.bankcards.entity.Card.Status.BLOCKED;
@@ -55,7 +55,7 @@ class UserCardControllerTest {
     @MockBean
     private TransactionService transactionService;
 
-    @MockBean // добавленный код: добавляем @MockBean для UserRepository, чтобы мокать findByUsername и избежать UserNotFoundException из реальной БД
+    @MockBean
     private UserRepository userRepository;
 
     @Autowired
@@ -65,7 +65,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void getUserCards_ShouldReturnUserCards() throws Exception {
 
-        // добавленный код: мок для userRepository.findByUsername, возвращаем User с id=1L для user1 (пустые роли, так как не проверяем)
+
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
 
         CardResponse card1 = new CardResponse();
@@ -112,7 +112,7 @@ class UserCardControllerTest {
 
         verify(cardService, times(1)).getUserCards(eq(1L), any(Pageable.class));
         verifyNoMoreInteractions(cardService);
-        // добавленный код: проверяем вызов userRepository.findByUsername
+
         verify(userRepository, times(1)).findByUsername("user1");
     }
 
@@ -120,7 +120,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void getCardById_ShouldReturnCard() throws Exception {
 
-        // добавленный код: мок для userRepository.findByUsername, возвращаем User с id=1L для user1
+
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -144,7 +144,7 @@ class UserCardControllerTest {
 
         verify(cardService, times(1)).getCardById(1L);
         verifyNoMoreInteractions(cardService);
-        // добавленный код: проверяем вызов userRepository.findByUsername
+
         verify(userRepository, times(1)).findByUsername("user1");
     }
 
@@ -152,7 +152,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void getCardById_WithBlockedStatus_ShouldReturnBlockedCard() throws Exception {
 
-        // добавленный код: мок для userRepository.findByUsername, возвращаем User с id=1L для user1
+
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -176,7 +176,7 @@ class UserCardControllerTest {
 
         verify(cardService, times(1)).getCardById(1L);
         verifyNoMoreInteractions(cardService);
-        // добавленный код: проверяем вызов userRepository.findByUsername
+
         verify(userRepository, times(1)).findByUsername("user1");
     }
 
@@ -184,7 +184,7 @@ class UserCardControllerTest {
     @WithMockUser(username = "user2")
     void getUserCards_ForUser2_ShouldReturnUser2Cards() throws Exception {
 
-        // добавленный код: мок для userRepository.findByUsername, возвращаем User с id=2L для user2
+
         when(userRepository.findByUsername("user2")).thenReturn(Optional.of(new User(2L, "user2", "password", new HashSet<>())));
 
         CardResponse card = new CardResponse();
@@ -218,26 +218,26 @@ class UserCardControllerTest {
 
         verify(cardService, times(1)).getUserCards(eq(2L), any(Pageable.class));
         verifyNoMoreInteractions(cardService);
-        // добавленный код: проверяем вызов userRepository.findByUsername
+
         verify(userRepository, times(1)).findByUsername("user2");
     }
 
     @Test
     @WithMockUser(username = "user1")
     void blockUserCard_ShouldMessage() throws Exception {
-        // Мок для userRepository.findByUsername
+
         when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
 
-        // Создаем мок CardResponse с данными, которые ожидаются в формируемом сообщении
+
         CardResponse cardResponse = new CardResponse();
         cardResponse.setId(1L);
         cardResponse.setMaskedCardNumber("**** **** **** 1111");
         cardResponse.setOwnerName("User One");
 
-        // Мок для cardService.getCardById, возвращаем cardResponse
+
         when(cardService.getCardById(1L)).thenReturn(cardResponse);
 
-        // Ожидаемое сообщение, которое формируется в контроллере
+
         String expectedMessage = String.format(
                 "Пользователь %s (id=%d) отправил запрос на блокировку карты номер %s (id=%d)",
                 cardResponse.getOwnerName(), 1L, cardResponse.getMaskedCardNumber(), cardResponse.getId()
@@ -246,11 +246,11 @@ class UserCardControllerTest {
         mockMvc.perform(post("/api/user/cards/{id}/block", 1L)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                // Убираем проверку content-type или меняем на правильный
+
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
                 .andExpect(jsonPath("$.message").value(expectedMessage));
 
-        // Проверяем вызов cardService.getCardById (реальный вызов в контроллере)
+
         verify(cardService, times(1)).getCardById(1L);
         verifyNoMoreInteractions(cardService);
         verify(userRepository, times(1)).findByUsername("user1");
@@ -259,8 +259,7 @@ class UserCardControllerTest {
     @Test
     @WithMockUser(username = "user1")
     void transfer_ShouldPerformTransfer() throws Exception {
-        // Мок для userRepository.findByUsername НЕ НУЖЕН, так как метод transfer() не вызывает getCurrentUserId()
-        // when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+
 
         TransactionRequest request = new TransactionRequest();
         request.setFromCardId(1L);
@@ -290,11 +289,10 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.timestamp").value("2024-01-01T10:00:00"))
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        // Проверяем вызов transactionService.transfer
+
         verify(transactionService, times(1)).transfer(any(TransactionRequest.class));
         verifyNoMoreInteractions(transactionService);
 
-        // Убираем проверку userRepository.findByUsername, так как он не вызывается в методе transfer()
-        // verify(userRepository, times(1)).findByUsername("user1");
+
     }
 }
