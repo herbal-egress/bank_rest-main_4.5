@@ -1,7 +1,6 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.card.CardResponse;
-import com.example.bankcards.dto.transaction.TransactionResponse;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.TransactionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +20,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +57,7 @@ class UserCardControllerTest {
 
         CardResponse card1 = new CardResponse();
         card1.setId(1L);
-        // изменил ИИ: установил maskedCardNumber в формате с пробелами, соответствующем CardResponse.maskCardNumber (маскирует как "**** **** **** 1111")
+        
         card1.setMaskedCardNumber("**** **** **** 1111");
         card1.setOwnerName("User One");
         card1.setExpirationDate(YearMonth.of(2025, 12));
@@ -68,7 +66,7 @@ class UserCardControllerTest {
 
         CardResponse card2 = new CardResponse();
         card2.setId(2L);
-        // изменил ИИ: установил maskedCardNumber в формате с пробелами, соответствующем CardResponse.maskCardNumber (маскирует как "**** **** **** 2222")
+        
         card2.setMaskedCardNumber("**** **** **** 2222");
         card2.setOwnerName("User One");
         card2.setExpirationDate(YearMonth.of(2026, 6));
@@ -79,7 +77,7 @@ class UserCardControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
-        // Исправлено: используем eq() для userId и any() для pageable
+        
         when(cardService.getUserCards(eq(1L), any(Pageable.class))).thenReturn(pageCards);
 
 
@@ -90,11 +88,11 @@ class UserCardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content[0].id").value(1L))
-                // изменил ИИ: исправил проверку на формат с пробелами, соответствующий реальному возвращаемому значению maskedCardNumber
+                
                 .andExpect(jsonPath("$.content[0].maskedCardNumber").value("**** **** **** 1111"))
                 .andExpect(jsonPath("$.content[0].balance").value(1000.0))
                 .andExpect(jsonPath("$.content[1].id").value(2L))
-                // изменил ИИ: исправил проверку на формат с пробелами, соответствующий реальному возвращаемому значению maskedCardNumber
+                
                 .andExpect(jsonPath("$.content[1].maskedCardNumber").value("**** **** **** 2222"))
                 .andExpect(jsonPath("$.content[1].balance").value(500.0));
 
@@ -109,7 +107,7 @@ class UserCardControllerTest {
 
         CardResponse card = new CardResponse();
         card.setId(1L);
-        // изменил ИИ: установил maskedCardNumber в формате с пробелами, соответствующем CardResponse.maskCardNumber (маскирует как "**** **** **** 1111")
+        
         card.setMaskedCardNumber("**** **** **** 1111");
         card.setOwnerName("User One");
         card.setExpirationDate(YearMonth.of(2025, 12));
@@ -124,7 +122,7 @@ class UserCardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
-                // изменил ИИ: исправил проверку на формат с пробелами, соответствующий реальному возвращаемому значению maskedCardNumber
+                
                 .andExpect(jsonPath("$.maskedCardNumber").value("**** **** **** 1111"))
                 .andExpect(jsonPath("$.balance").value(1000.0))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
@@ -141,7 +139,7 @@ class UserCardControllerTest {
 
         CardResponse card = new CardResponse();
         card.setId(1L);
-        // изменил ИИ: установил maskedCardNumber в формате с пробелами, соответствующем CardResponse.maskCardNumber (маскирует как "**** **** **** 1111")
+        
         card.setMaskedCardNumber("**** **** **** 1111");
         card.setOwnerName("User One");
         card.setExpirationDate(YearMonth.of(2025, 12));
@@ -156,7 +154,7 @@ class UserCardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
-                // изменил ИИ: исправил проверку на формат с пробелами, соответствующий реальному возвращаемому значению maskedCardNumber
+                
                 .andExpect(jsonPath("$.maskedCardNumber").value("**** **** **** 1111"))
                 .andExpect(jsonPath("$.balance").value(0.0))
                 .andExpect(jsonPath("$.status").value("BLOCKED"));
@@ -172,7 +170,7 @@ class UserCardControllerTest {
 
         CardResponse card = new CardResponse();
         card.setId(3L);
-        // изменил ИИ: установил maskedCardNumber в формате с пробелами, соответствующем CardResponse.maskCardNumber (маскирует как "**** **** **** 3333")
+        
         card.setMaskedCardNumber("**** **** **** 3333");
         card.setOwnerName("User Two");
         card.setExpirationDate(YearMonth.of(2025, 9));
@@ -183,7 +181,7 @@ class UserCardControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
-        // Исправлено: используем eq() для userId и any() для pageable
+        
         when(cardService.getUserCards(eq(2L), any(Pageable.class))).thenReturn(pageCards);
 
 
@@ -194,7 +192,7 @@ class UserCardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content[0].id").value(3L))
-                // изменил ИИ: исправил проверку на формат с пробелами, соответствующий реальному возвращаемому значению maskedCardNumber
+                
                 .andExpect(jsonPath("$.content[0].maskedCardNumber").value("**** **** **** 3333"))
                 .andExpect(jsonPath("$.content[0].balance").value(750.0));
 
@@ -202,5 +200,4 @@ class UserCardControllerTest {
         verify(cardService, times(1)).getUserCards(eq(2L), any(Pageable.class));
         verifyNoMoreInteractions(cardService);
     }
-    // изменил ИИ: удалил тест getCardTransactions_ShouldReturnTransactions, так как он тестирует несуществующий эндпоинт /api/user/cards/{cardId}/transactions в UserCardController.java; метод transactionService.getCardTransactions существует, но не используется в контроллере, поэтому тест некорректен и вызывает NoResourceFoundException
 }
