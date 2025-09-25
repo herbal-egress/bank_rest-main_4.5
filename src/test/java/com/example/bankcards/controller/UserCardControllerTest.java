@@ -186,46 +186,45 @@ class UserCardControllerTest {
         verify(cardService, times(1)).getUserCards(2L, any(Pageable.class));
         verifyNoMoreInteractions(cardService);
     }
-//
-//    @Test
-//    @WithMockUser(username = "user1")
-//    void getCardTransactions_ShouldReturnTransactions() throws Exception {
-//
-//        LocalDateTime timestamp1 = LocalDateTime.parse("2024-01-01T10:00:00");
-//        LocalDateTime timestamp2 = LocalDateTime.parse("2024-01-02T11:00:00");
-//
-//        TransactionResponse transaction1 = new TransactionResponse();
-//        transaction1.setId(1L);
-//        transaction1.setFromCardId(1L);
-//        transaction1.setToCardId(2L);
-//        transaction1.setAmount(100.0);
-//        transaction1.setTimestamp(timestamp1);
-//
-//        TransactionResponse transaction2 = new TransactionResponse();
-//        transaction2.setId(2L);
-//        transaction2.setFromCardId(1L);
-//        transaction2.setToCardId(3L);
-//        transaction2.setAmount(50.0);
-//        transaction2.setTimestamp(timestamp2);
-//
-//        List<TransactionResponse> transactions = Arrays.asList(transaction1, transaction2);
-//
-//        when(transactionService.getCardTransactions("user1", 1L)).thenReturn(transactions);
-//
-//
-//        mockMvc.perform(get("/api/user/cards/{cardId}/transactions", 1L))
-//                .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(jsonPath("$[0].id").value(1L))
-//                .andExpect(jsonPath("$[0].amount").value(100.0))
-//                .andExpect(jsonPath("$[0].timestamp").value("2024-01-01T10:00:00"))
-//                .andExpect(jsonPath("$[1].id").value(2L))
-//                .andExpect(jsonPath("$[1].amount").value(50.0))
-//                .andExpect(jsonPath("$[1].timestamp").value("2024-01-02T11:00:00"));
-//
-//
-//        verify(transactionService, times(1)).getCardTransactions("user1", 1L);
-//        verifyNoMoreInteractions(transactionService);
-//    }
+@Test
+    @WithMockUser(username = "user1")
+    void getCardTransactions_ShouldReturnTransactions() throws Exception {
+        // Arrange
+        LocalDateTime timestamp1 = LocalDateTime.parse("2024-01-01T10:00:00"); // добавленный код: Конкретные значения для стабильности
+        LocalDateTime timestamp2 = LocalDateTime.parse("2024-01-02T11:00:00"); // добавленный код: Конкретные значения для стабильности
+
+        TransactionResponse transaction1 = new TransactionResponse();
+        transaction1.setId(1L);
+        transaction1.setFromCardId(1L);
+        transaction1.setToCardId(2L);
+        transaction1.setAmount(100.0); // добавленный код: double для суммы в DTO
+        transaction1.setTimestamp(timestamp1); // добавленный код: Установка timestamp для сериализации в JSON как строку
+
+        TransactionResponse transaction2 = new TransactionResponse();
+        transaction2.setId(2L);
+        transaction2.setFromCardId(1L);
+        transaction2.setToCardId(3L);
+        transaction2.setAmount(50.0); // добавленный код: double для суммы в DTO
+        transaction2.setTimestamp(timestamp2); // добавленный код: Установка timestamp для сериализации в JSON как строку
+
+        List<TransactionResponse> transactions = Arrays.asList(transaction1, transaction2); // добавленный код: Список для мокирования возврата сервиса
+
+        when(transactionService.getCardTransactions("user1", 1L)).thenReturn(transactions); // добавленный код: Мокирование сервиса для возврата списка транзакций с username и cardId
+
+        // Act & Assert
+        mockMvc.perform(get("/api/user/cards/{cardId}/transactions", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)) // изменил ИИ: Перемещён .contentType() внутрь .perform() для вызова на RequestBuilder (get возвращает RequestBuilder, который имеет .contentType())
+                .andExpect(status().isOk()) // добавленный код: Проверка статуса 200 OK
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON)) // добавленный код: Проверка типа контента ответа
+                .andExpect(jsonPath("$[0].id").value(1L)) // добавленный код: Проверка ID первой транзакции
+                .andExpect(jsonPath("$[0].amount").value(100.0)) // добавленный код: Проверка суммы первой транзакции
+                .andExpect(jsonPath("$[0].timestamp").value("2024-01-01T10:00:00")) // добавленный код: Проверка timestamp первой транзакции (Jackson сериализует LocalDateTime в ISO-строку)
+                .andExpect(jsonPath("$[1].id").value(2L)) // добавленный код: Проверка ID второй транзакции
+                .andExpect(jsonPath("$[1].amount").value(50.0)) // добавленный код: Проверка суммы второй транзакции
+                .andExpect(jsonPath("$[1].timestamp").value("2024-01-02T11:00:00")); // добавленный код: Проверка timestamp второй транзакции (Jackson сериализует LocalDateTime в ISO-строку)
+
+        // Verify
+        verify(transactionService, times(1)).getCardTransactions("user1", 1L); // добавленный код: Верификация вызова метода сервиса с username и cardId
+        verifyNoMoreInteractions(transactionService); // добавленный код: Проверка отсутствия других взаимодействий с сервисом
+    }
 }
