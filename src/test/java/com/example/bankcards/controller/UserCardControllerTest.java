@@ -1,4 +1,5 @@
 package com.example.bankcards.controller;
+
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.repository.CardRepository;
@@ -21,12 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean; // добавленный код: импорт для @SpyBean (для использования реальных методов в интеграционном тесте)
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles; // добавленный код: импорт для @ActiveProfiles (для активации профиля test)
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -48,11 +51,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test") // добавленный код: активация профиля test для использования конфигурации из application-test.yml (default_schema=test, правильная схема БД)
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 class UserCardControllerTest {
-    @MockBean
+    @SpyBean // изменил ИИ: изменил с @MockBean на @SpyBean для использования реального метода save (интеграционный тест проверяет изменения в БД)
     private TransactionRepository transactionRepository;
 
     @Autowired
@@ -60,13 +64,13 @@ class UserCardControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @SpyBean // изменил ИИ: изменил с @MockBean на @SpyBean для использования реальных методов (в unit-тестах стаббинг через doReturn, в интеграционном - реальные вызовы)
     private CardService cardService;
 
-    @MockBean
+    @SpyBean // изменил ИИ: изменил с @MockBean на @SpyBean для использования реальной логики transfer (интеграционный тест проверяет изменения баланса)
     private TransactionService transactionService;
 
-    @MockBean
+    @SpyBean // изменил ИИ: изменил с @MockBean на @SpyBean для использования реального findByUsername в интеграционном тесте (реальные данные из БД)
     private UserRepository userRepository;
 
     @Autowired
@@ -76,8 +80,8 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void getUserCards_ShouldReturnUserCards() throws Exception {
 
-
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean (избегает вызова реального метода при стаббинге)
+        doReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>()))).when(userRepository).findByUsername("user1");
 
         CardResponse card1 = new CardResponse();
         card1.setId(1L);
@@ -101,8 +105,8 @@ class UserCardControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
-
-        when(cardService.getUserCards(eq(1L), any(Pageable.class))).thenReturn(pageCards);
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(pageCards).when(cardService).getUserCards(eq(1L), any(Pageable.class));
 
 
         mockMvc.perform(get("/api/user/cards")
@@ -132,7 +136,8 @@ class UserCardControllerTest {
     void getCardById_ShouldReturnCard() throws Exception {
 
 
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>()))).when(userRepository).findByUsername("user1");
 
         CardResponse card = new CardResponse();
         card.setId(1L);
@@ -143,7 +148,8 @@ class UserCardControllerTest {
         card.setBalance(1000.0);
         card.setStatus(ACTIVE);
 
-        when(cardService.getCardById(1L)).thenReturn(card);
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(card).when(cardService).getCardById(1L);
 
 
         mockMvc.perform(get("/api/user/cards/{id}/balance", 1L)
@@ -164,7 +170,8 @@ class UserCardControllerTest {
     void getCardById_WithBlockedStatus_ShouldReturnBlockedCard() throws Exception {
 
 
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>()))).when(userRepository).findByUsername("user1");
 
         CardResponse card = new CardResponse();
         card.setId(1L);
@@ -175,7 +182,8 @@ class UserCardControllerTest {
         card.setBalance(0.0);
         card.setStatus(BLOCKED);
 
-        when(cardService.getCardById(1L)).thenReturn(card);
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(card).when(cardService).getCardById(1L);
 
 
         mockMvc.perform(get("/api/user/cards/{id}/balance", 1L)
@@ -196,7 +204,8 @@ class UserCardControllerTest {
     void getUserCards_ForUser2_ShouldReturnUser2Cards() throws Exception {
 
 
-        when(userRepository.findByUsername("user2")).thenReturn(Optional.of(new User(2L, "user2", "password", new HashSet<>())));
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(Optional.of(new User(2L, "user2", "password", new HashSet<>()))).when(userRepository).findByUsername("user2");
 
         CardResponse card = new CardResponse();
         card.setId(3L);
@@ -212,7 +221,8 @@ class UserCardControllerTest {
         Page<CardResponse> pageCards = new PageImpl<>(cards, pageable, cards.size());
 
 
-        when(cardService.getUserCards(eq(2L), any(Pageable.class))).thenReturn(pageCards);
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(pageCards).when(cardService).getUserCards(eq(2L), any(Pageable.class));
 
 
         mockMvc.perform(get("/api/user/cards")
@@ -237,7 +247,8 @@ class UserCardControllerTest {
     @WithMockUser(username = "user1")
     void blockUserCard_ShouldMessage() throws Exception {
 
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>()))).when(userRepository).findByUsername("user1");
 
 
         CardResponse cardResponse = new CardResponse();
@@ -246,7 +257,8 @@ class UserCardControllerTest {
         cardResponse.setOwnerName("User One");
 
 
-        when(cardService.getCardById(1L)).thenReturn(cardResponse);
+        // изменил ИИ: изменил стаббинг с when на doReturn для совместимости со @SpyBean
+        doReturn(cardResponse).when(cardService).getCardById(1L);
 
 
         String expectedMessage = String.format(
@@ -268,10 +280,9 @@ class UserCardControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user1")
+    @WithMockUser(username = "user") // изменил ИИ: изменил username с "user1" на "user" для соответствия реальным данным из 002-initial-data-test.sql (интеграционный тест использует реальную БД)
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
-        // Убираем моки сервисов для интеграционного тестирования
-        // when(userRepository.findByUsername("user1")).thenReturn(Optional.of(new User(1L, "user1", "password", new HashSet<>())));
+        // изменил ИИ: удалил закомментированный стаббинг when для userRepository (теперь @SpyBean вызывает реальный метод, пользователь "user" существует в тестовой БД)
 
         TransactionRequest request = new TransactionRequest();
         request.setFromCardId(1L);
@@ -305,4 +316,4 @@ class UserCardControllerTest {
         // Проверка, что транзакция сохранена
         // Можно проверить через transactionRepository.count() или найти конкретную транзакцию
     }
-    }
+}
