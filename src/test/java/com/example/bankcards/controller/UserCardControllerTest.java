@@ -233,8 +233,8 @@ class UserCardControllerTest {
         CardResponse blockedCard = new CardResponse();
         blockedCard.setId(1L);
         blockedCard.setMaskedCardNumber("**** **** **** 1111");
-        blockedCard.setOwnerName("User One");
-        blockedCard.setExpirationDate(YearMonth.of(2025, 12));
+        blockedCard.setOwnerName("User One"); // добавленный код: установка ownerName для полной проверки DTO в ответе
+        blockedCard.setExpirationDate(YearMonth.of(2025, 12)); // добавленный код: установка expirationDate для полной проверки DTO в ответе
         blockedCard.setBalance(1000.0);
         blockedCard.setStatus(BLOCKED);
 
@@ -247,6 +247,8 @@ class UserCardControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.maskedCardNumber").value("**** **** **** 1111"))
+                .andExpect(jsonPath("$.ownerName").value("User One")) // добавленный код: проверка ownerName в ответе для полноты теста
+                .andExpect(jsonPath("$.expirationDate").value("2025-12")) // добавленный код: проверка expirationDate в ответе (формат yyyy-MM от @JsonFormat)
                 .andExpect(jsonPath("$.balance").value(1000.0))
                 .andExpect(jsonPath("$.status").value("BLOCKED"));
 
@@ -269,12 +271,14 @@ class UserCardControllerTest {
         request.setToCardId(2L);
         request.setAmount(100.0);
 
+        LocalDateTime timestamp = LocalDateTime.parse("2024-01-01T10:00:00"); // добавленный код: фиксированный timestamp для воспроизводимости теста и проверки jsonPath
+
         TransactionResponse response = new TransactionResponse();
         response.setId(1L);
         response.setFromCardId(1L);
         response.setToCardId(2L);
         response.setAmount(100.0);
-        response.setTimestamp(LocalDateTime.now());
+        response.setTimestamp(timestamp); // изменил ИИ: установка фиксированного timestamp для проверки в jsonPath (избегание несоответствия от LocalDateTime.now())
         response.setStatus("SUCCESS");
 
         // добавленный код: мок для transactionService.transfer, возвращаем response
@@ -289,6 +293,7 @@ class UserCardControllerTest {
                 .andExpect(jsonPath("$.fromCardId").value(1L))
                 .andExpect(jsonPath("$.toCardId").value(2L))
                 .andExpect(jsonPath("$.amount").value(100.0))
+                .andExpect(jsonPath("$.timestamp").value("2024-01-01T10:00:00")) // добавленный код: проверка фиксированного timestamp в ответе для полноты теста
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
         // добавленный код: проверяем вызов transactionService.transfer с request
