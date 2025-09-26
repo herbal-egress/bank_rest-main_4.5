@@ -29,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) 
-@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) 
+@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class AdminControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -123,7 +124,7 @@ class AdminControllerTest {
         assertTrue(userRepository.existsById(1L), "Пользователь с id=1 должен существовать");
         long initialCardCount = cardRepository.count();
         assertEquals(5, initialCardCount, "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
-        cardRepository.deleteAllCardsByUserId(1L); 
+        cardRepository.deleteAllCardsByUserId(1L);
         long finalCardCount = cardRepository.count();
         assertEquals(2, finalCardCount, "Ожидалось 2 карты после удаления карт пользователя id=1");
         mockMvc.perform(delete("/api/admin/users/{id}", 1L)
