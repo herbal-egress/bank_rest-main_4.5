@@ -33,7 +33,7 @@ spring:
 
   liquibase:
     enabled: false
-    change-log: classpath:db/changelog/db.changelog-test.xml
+    change-log: classpath:db.changelog-test.xml
 
   springdoc:
     swagger-ui:
