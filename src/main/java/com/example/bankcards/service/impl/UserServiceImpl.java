@@ -9,16 +9,16 @@ import com.example.bankcards.exception.UsernameAlreadyExistsException;
 import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.UserService;
+import com.example.bankcards.util.UserUtils; // изменил ИИ: Импорт UserUtils для resolveRoles
+import com.example.bankcards.mapper.UserMapper; // изменил ИИ: Добавлен импорт нового маппера
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +26,9 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserUtils userUtils; // изменил ИИ: Зависимость от UserUtils
+    private final UserMapper userMapper; // изменил ИИ: Добавлена зависимость от UserMapper
 
     @Override
     @Transactional
@@ -42,12 +43,12 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(userRequest.getUsername());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        Set<Role> roles = resolveRoles(userRequest.getRoles());
+        Set<Role> roles = userUtils.resolveRoles(userRequest.getRoles()); // изменил ИИ: Использование метода из UserUtils
         user.setRoles(roles);
 
         User savedUser = userRepository.save(user);
         log.info("Пользователь успешно создан с ID: {}", savedUser.getId());
-        return mapToUserResponse(savedUser);
+        return userMapper.mapToUserResponse(savedUser); // изменил ИИ: Использование метода из UserMapper
     }
 
     @Override
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
         log.debug("Запрос пользователя по ID: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
-        return mapToUserResponse(user);
+        return userMapper.mapToUserResponse(user); // изменил ИИ: Использование метода из UserMapper
     }
 
     @Override
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getAllUsers() {
         log.debug("Запрос всех пользователей");
         List<User> users = userRepository.findAll();
-        return users.stream().map(this::mapToUserResponse).collect(Collectors.toList());
+        return users.stream().map(userMapper::mapToUserResponse).collect(Collectors.toList()); // изменил ИИ: Использование метода из UserMapper
     }
 
     @Override
@@ -85,12 +86,12 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
         if (userRequest.getRoles() != null) {
-            user.setRoles(resolveRoles(userRequest.getRoles()));
+            user.setRoles(userUtils.resolveRoles(userRequest.getRoles())); // изменил ИИ: Использование метода из UserUtils
         }
 
         User updatedUser = userRepository.save(user);
         log.info("Пользователь с ID {} успешно обновлен", id);
-        return mapToUserResponse(updatedUser);
+        return userMapper.mapToUserResponse(updatedUser); // изменил ИИ: Использование метода из UserMapper
     }
 
     @Override
@@ -103,40 +104,5 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.deleteById(id);
         log.info("Пользователь с ID {} успешно удален", id);
-    }
-
-    private UserResponse mapToUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setRoles(user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toSet()));
-        return response;
-    }
-
-    private Set<Role> resolveRoles(Set<String> roleNames) {
-        Set<Role> roles = new HashSet<>();
-        if (roleNames == null || roleNames.isEmpty()) {
-            Role defaultRole = roleRepository.findByName(Role.RoleType.USER)
-                    .orElseThrow(() -> new IllegalStateException("Роль USER не найдена в базе данных"));
-            roles.add(defaultRole);
-            log.debug("Назначена роль по умолчанию: USER");
-        } else {
-            for (String roleName : roleNames) {
-                Role.RoleType roleType;
-                try {
-                    roleType = Role.RoleType.valueOf(roleName.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    log.error("Указана несуществующая роль: {}", roleName);
-                    throw new IllegalArgumentException("Роль '" + roleName + "' не существует");
-                }
-                Role role = roleRepository.findByName(roleType)
-                        .orElseThrow(() -> new IllegalStateException("Роль " + roleType + " не найдена в базе данных"));
-                roles.add(role);
-            }
-            log.debug("Назначены роли: {}", roleNames);
-        }
-        return roles;
     }
 }

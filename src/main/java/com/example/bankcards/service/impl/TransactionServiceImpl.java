@@ -110,31 +110,4 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new com.example.bankcards.exception.UserNotFoundException("Пользователь не найден"));
         return user.getId();
     }
-    
-//    @Override
-//    @Transactional(readOnly = true)
-//    public List<TransactionResponse> getCardTransactions(String username, Long cardId) {
-//
-//        Card card = cardRepository.findById(cardId)
-//                .orElseThrow(() -> new CardNotFoundException("Card with id " + cardId + " not found"));
-//        if (!card.getUser().getUsername().equals(username)) {
-//            throw new CardNotFoundException("Card with id " + cardId + " does not belong to user " + username);
-//        }
-//
-//
-//        List<Transaction> transactions = transactionRepository.findByFromCardIdOrToCardId(cardId, cardId);
-//
-//
-//        return transactions.stream()
-//                .map(transaction -> {
-//                    TransactionResponse response = new TransactionResponse();
-//                    response.setId(transaction.getId());
-//                    response.setFromCardId(transaction.getFromCard().getId());
-//                    response.setToCardId(transaction.getToCard().getId());
-//                    response.setAmount(transaction.getAmount());
-//                    response.setTimestamp(transaction.getTimestamp());
-//                    return response;
-//                })
-//                .collect(Collectors.toList());
-//    }
 }

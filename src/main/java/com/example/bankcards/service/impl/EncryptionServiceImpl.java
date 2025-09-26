@@ -14,13 +14,4 @@ public class EncryptionServiceImpl implements EncryptionService {
         log.debug("Шифрование данных: {}", data.substring(0, Math.min(4, data.length())) + "***");
         return "encrypted_" + data;
     }
-
-//    @Override
-//    public String decrypt(String encryptedData) {
-//        log.debug("Дешифрование данных");
-//        if (encryptedData.startsWith("encrypted_")) {
-//            return encryptedData.substring("encrypted_".length());
-//        }
-//        return encryptedData;
-//    }
 }

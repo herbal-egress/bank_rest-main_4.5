@@ -12,22 +12,16 @@ import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.EncryptionService;
+import com.example.bankcards.util.CardUtils; // изменил ИИ: Добавлен импорт нового утилитного класса
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.bankcards.dto.card.CardUpdateRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import java.security.SecureRandom;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +31,7 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final EncryptionService encryptionService;
-    private static final String CARD_NUMBER_PREFIX = "3985";
-    private static final SecureRandom random = new SecureRandom();
+    private final CardUtils cardUtils; // изменил ИИ: Добавлена зависимость от CardUtils
 
     @Override
     @Transactional
@@ -53,7 +46,7 @@ public class CardServiceImpl implements CardService {
         User user = userRepository.findById(cardRequest.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + cardRequest.getUserId() + " не найден"));
 
-        String cardNumber = generateCardNumber();
+        String cardNumber = CardUtils.generateCardNumber(); // изменил ИИ: Использование метода из CardUtils
         String encryptedCardNumber = encryptionService.encrypt(cardNumber);
 
         if (cardRepository.existsByEncryptedCardNumber(encryptedCardNumber)) {
@@ -67,20 +60,12 @@ public class CardServiceImpl implements CardService {
         card.setExpirationDate(cardRequest.getExpirationDate());
         card.setBalance(cardRequest.getBalance() != null ? cardRequest.getBalance() : 0.0);
         card.setUser(user);
-        card.setStatus(determineCardStatus(cardRequest.getExpirationDate()));
+        card.setStatus(CardUtils.determineCardStatus(cardRequest.getExpirationDate())); // изменил ИИ: Использование метода из CardUtils
 
         Card savedCard = cardRepository.save(card);
         log.info("Карта успешно создана с ID: {} для пользователя: {}", savedCard.getId(), user.getUsername());
 
-        return mapToCardResponse(savedCard);
-    }
-
-    private String generateCardNumber() {
-        StringBuilder cardNumber = new StringBuilder(CARD_NUMBER_PREFIX);
-        for (int i = 0; i < 12; i++) {
-            cardNumber.append(random.nextInt(10));
-        }
-        return cardNumber.toString();
+        return CardUtils.mapToCardResponse(savedCard); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -90,8 +75,8 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Карта с ID " + id + " не найдена"));
 
-        checkCardOwnership(card);
-        return mapToCardResponse(card);
+        cardUtils.checkCardOwnership(card); // изменил ИИ: Использование метода из CardUtils
+        return CardUtils.mapToCardResponse(card); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -99,7 +84,7 @@ public class CardServiceImpl implements CardService {
     public Page<CardResponse> getUserCards(Long userId, Pageable pageable) {
         log.debug("Запрос всех карт для пользователя ID: {} с пагинацией", userId);
         Page<Card> cards = cardRepository.findByUserId(userId, pageable);
-        return cards.map(this::mapToCardResponse);
+        return cards.map(CardUtils::mapToCardResponse); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -107,7 +92,7 @@ public class CardServiceImpl implements CardService {
     public List<CardResponse> getAllCards() {
         log.debug("Запрос всех карт без пагинации");
         List<Card> cards = cardRepository.findAll();
-        return cards.stream().map(this::mapToCardResponse).collect(Collectors.toList());
+        return cards.stream().map(CardUtils::mapToCardResponse).collect(Collectors.toList()); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -117,19 +102,19 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Карта с ID " + id + " не найдена"));
 
-        checkCardOwnership(card);
+        cardUtils.checkCardOwnership(card); // изменил ИИ: Использование метода из CardUtils
 
         if (cardUpdateRequest.getOwnerName() != null && !cardUpdateRequest.getOwnerName().isBlank()) {
             card.setOwnerName(cardUpdateRequest.getOwnerName());
         }
         if (cardUpdateRequest.getExpirationDate() != null) {
             card.setExpirationDate(cardUpdateRequest.getExpirationDate());
-            card.setStatus(determineCardStatus(cardUpdateRequest.getExpirationDate()));
+            card.setStatus(CardUtils.determineCardStatus(cardUpdateRequest.getExpirationDate())); // изменил ИИ: Использование метода из CardUtils
         }
 
         Card updatedCard = cardRepository.save(card);
         log.info("Карта с ID {} успешно обновлена", id);
-        return mapToCardResponse(updatedCard);
+        return CardUtils.mapToCardResponse(updatedCard); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -152,7 +137,7 @@ public class CardServiceImpl implements CardService {
         card.setStatus(Card.Status.BLOCKED);
         Card blockedCard = cardRepository.save(card);
         log.info("Карта с ID {} успешно заблокирована", id);
-        return mapToCardResponse(blockedCard);
+        return CardUtils.mapToCardResponse(blockedCard); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -175,7 +160,7 @@ public class CardServiceImpl implements CardService {
         card.setStatus(Card.Status.ACTIVE);
         Card activatedCard = cardRepository.save(card);
         log.info("Карта с ID {} успешно активирована", id);
-        return mapToCardResponse(activatedCard);
+        return CardUtils.mapToCardResponse(activatedCard); // изменил ИИ: Использование метода из CardUtils
     }
 
     @Override
@@ -188,40 +173,5 @@ public class CardServiceImpl implements CardService {
         }
         cardRepository.deleteById(id);
         log.info("Карта с ID {} успешно удалена", id);
-    }
-
-    private Card.Status determineCardStatus(YearMonth expirationDate) {
-        YearMonth current = YearMonth.now();
-        if (expirationDate.isBefore(current)) {
-            return Card.Status.EXPIRED;
-        }
-        return Card.Status.ACTIVE;
-    }
-
-    private void checkCardOwnership(Card card) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            if (!userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                User currentUser = userRepository.findByUsername(userDetails.getUsername())
-                        .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
-                if (!card.getUser().getId().equals(currentUser.getId())) {
-                    log.warn("Попытка доступа к чужой карте ID: {} пользователем: {}", card.getId(), currentUser.getUsername());
-                    throw new AccessDeniedException("Доступ к карте запрещен");
-                }
-            }
-        }
-    }
-
-    private CardResponse mapToCardResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setId(card.getId());
-        response.setMaskedCardNumber(CardResponse.maskCardNumber(card.getEncryptedCardNumber()));
-        response.setOwnerName(card.getOwnerName());
-        response.setExpirationDate(card.getExpirationDate());
-        response.setStatus(card.getStatus());
-        response.setBalance(card.getBalance());
-        response.setUserId(card.getUser().getId());
-        return response;
     }
 }

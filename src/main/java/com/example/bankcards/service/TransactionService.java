@@ -9,5 +9,4 @@ import java.util.List;
 public interface TransactionService {
     
     TransactionResponse transfer(TransactionRequest request);
-//    List<TransactionResponse> getCardTransactions(String username, Long cardId);
 }
