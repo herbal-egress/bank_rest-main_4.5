@@ -1,6 +1,7 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.card.CardRequest;
+import com.example.bankcards.entity.Card;
 import com.example.bankcards.repository.CardRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -26,9 +27,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
-@Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+@Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class AdminCardControllerTest {
     @Autowired
     private CardRepository cardRepository;
@@ -40,15 +41,13 @@ class AdminCardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void createCard() throws Exception {
-        
         long initialCardCount = cardRepository.count();
+        assertEquals(5, initialCardCount, "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
         CardRequest cardRequest = new CardRequest();
         cardRequest.setOwnerName("Test Owner");
         cardRequest.setExpirationDate(YearMonth.parse("2025-12"));
         cardRequest.setBalance(500.0);
         cardRequest.setUserId(1L);
-
-        
         MvcResult result = mockMvc.perform(post("/api/admin/cards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cardRequest)))
@@ -64,12 +63,8 @@ class AdminCardControllerTest {
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.userId").value(1))
                 .andReturn();
-
-        
         long finalCardCount = cardRepository.count();
         assertEquals(initialCardCount + 1, finalCardCount, "Количество карт должно увеличиться на 1");
-
-        
         String response = result.getResponse().getContentAsString();
         Long cardId = JsonPath.parse(response).read("$.id", Long.class);
         assertTrue(cardRepository.existsById(cardId), "Созданная карта должна существовать в БД");
@@ -78,10 +73,8 @@ class AdminCardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void getAllCards() throws Exception {
-        
         long actualCardCount = cardRepository.count();
-
-        
+        assertEquals(5, actualCardCount, "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
         mockMvc.perform(get("/api/admin/cards")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -102,8 +95,6 @@ class AdminCardControllerTest {
                 .andExpect(jsonPath("$[0].status").isString())
                 .andExpect(jsonPath("$[0].userId").exists())
                 .andExpect(jsonPath("$[0].userId").isNumber());
-
-        
         assertTrue(actualCardCount >= 0, "Количество карт должно быть неотрицательным");
     }
 
@@ -111,23 +102,15 @@ class AdminCardControllerTest {
     @WithMockUser(roles = "ADMIN")
     void updateCard() throws Exception {
         Long existingCardId = 2L;
-
-        
         assertTrue(cardRepository.existsById(existingCardId), "Карта для обновления должна существовать");
-
-        
         var originalCard = cardRepository.findById(existingCardId);
         assertTrue(originalCard.isPresent(), "Исходная карта должна существовать");
-
-        
         String updateRequestJson = """
                 {
                     "ownerName": "UPDATED OWNER NAME",
                     "expirationDate": "2026-12"
                 }
                 """;
-
-        
         mockMvc.perform(put("/api/admin/cards/{id}", existingCardId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateRequestJson))
@@ -140,8 +123,6 @@ class AdminCardControllerTest {
                 .andExpect(jsonPath("$.balance").exists())
                 .andExpect(jsonPath("$.status").exists())
                 .andExpect(jsonPath("$.userId").exists());
-
-        
         var updatedCard = cardRepository.findById(existingCardId);
         assertTrue(updatedCard.isPresent(), "Обновленная карта должна существовать");
         assertEquals("UPDATED OWNER NAME", updatedCard.get().getOwnerName(), "Имя владельца должно быть обновлено");
@@ -151,36 +132,26 @@ class AdminCardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteCard() throws Exception {
-        
+        long initialCardCount = cardRepository.count();
+        assertEquals(5, initialCardCount, "Ожидалось 5 карт в test.cards после вставки из 002-initial-data-test.sql");
         CardRequest cardRequest = new CardRequest();
         cardRequest.setOwnerName("Card to delete");
         cardRequest.setExpirationDate(YearMonth.parse("2025-12"));
         cardRequest.setBalance(100.0);
         cardRequest.setUserId(1L);
-
-        long initialCardCount = cardRepository.count();
-
-        
         MvcResult result = mockMvc.perform(post("/api/admin/cards")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cardRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andReturn();
-
         String response = result.getResponse().getContentAsString();
         Long cardId = JsonPath.parse(response).read("$.id", Long.class);
-
-        
         assertTrue(cardRepository.existsById(cardId), "Созданная карта должна существовать перед удалением");
         assertEquals(initialCardCount + 1, cardRepository.count(), "Количество карт должно увеличиться после создания");
-
-        
         mockMvc.perform(delete("/api/admin/cards/{id}", cardId))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
-
-        
         assertFalse(cardRepository.existsById(cardId), "Карта должна быть удалена из БД");
         assertEquals(initialCardCount, cardRepository.count(), "Количество карт должно вернуться к исходному значению");
     }

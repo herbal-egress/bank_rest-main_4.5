@@ -20,6 +20,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     List<Card> findByUserId(Long userId);
 
+    void deleteAllCardsByUserId(Long userId);
+
     Page<Card> findByUserId(Long userId, Pageable pageable);
 
     @Query("SELECT c FROM Card c WHERE c.user.id = :userId AND c.status = 'ACTIVE'")
