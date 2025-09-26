@@ -15,12 +15,12 @@ public class EncryptionServiceImpl implements EncryptionService {
         return "encrypted_" + data;
     }
 
-    @Override
-    public String decrypt(String encryptedData) {
-        log.debug("Дешифрование данных");
-        if (encryptedData.startsWith("encrypted_")) {
-            return encryptedData.substring("encrypted_".length());
-        }
-        return encryptedData;
-    }
+//    @Override
+//    public String decrypt(String encryptedData) {
+//        log.debug("Дешифрование данных");
+//        if (encryptedData.startsWith("encrypted_")) {
+//            return encryptedData.substring("encrypted_".length());
+//        }
+//        return encryptedData;
+//    }
 }
