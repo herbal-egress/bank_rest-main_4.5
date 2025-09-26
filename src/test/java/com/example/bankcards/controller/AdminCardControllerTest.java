@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.card.CardRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.repository.CardRepository;
@@ -16,13 +15,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
 import java.time.YearMonth;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -37,7 +33,6 @@ class AdminCardControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void createCard() throws Exception {
@@ -69,7 +64,6 @@ class AdminCardControllerTest {
         Long cardId = JsonPath.parse(response).read("$.id", Long.class);
         assertTrue(cardRepository.existsById(cardId), "Созданная карта должна существовать в БД");
     }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void getAllCards() throws Exception {
@@ -97,7 +91,6 @@ class AdminCardControllerTest {
                 .andExpect(jsonPath("$[0].userId").isNumber());
         assertTrue(actualCardCount >= 0, "Количество карт должно быть неотрицательным");
     }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void updateCard() throws Exception {
@@ -128,7 +121,6 @@ class AdminCardControllerTest {
         assertEquals("UPDATED OWNER NAME", updatedCard.get().getOwnerName(), "Имя владельца должно быть обновлено");
         assertEquals(YearMonth.parse("2026-12"), updatedCard.get().getExpirationDate(), "Дата expiration должна быть обновлена");
     }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteCard() throws Exception {
