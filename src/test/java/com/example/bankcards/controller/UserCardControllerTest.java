@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {"spring.jpa.properties.hibernate.default_schema=test"})
 @Sql(scripts = "classpath:db/changelog/changes/001-initial-schema-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) 
 @Sql(scripts = "classpath:db/changelog/changes/002-initial-data-test.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD) 
-@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) 
+@Sql(scripts = "classpath:db/changelog/changes/clear-schema-test.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class UserCardControllerTest {
     @Autowired 
     private TransactionRepository transactionRepository;
@@ -195,7 +195,6 @@ class UserCardControllerTest {
     }
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    @Transactional
     void transfer_ShouldPerformTransfer_Integration() throws Exception {
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(new User(1L, "user", "password", new HashSet<>())));
         System.out.println("=== Проверка состояния базы данных перед тестом ===");

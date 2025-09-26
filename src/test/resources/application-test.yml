@@ -23,26 +23,34 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none  # изменил ИИ: изменил с validate на none, чтобы JPA не вмешивалась в создание/валидацию таблиц; теперь @Sql полностью управляет схемой test
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
         format_sql: true
-        default_schema: test  # добавленный код: устанавливает default_schema=test для всех JPA-операций в тестах (репозитории ищут таблицы в test.)
+        default_schema: test
 
   liquibase:
-    enabled: false  # изменил ИИ: изменил с true на false, чтобы отключить Liquibase в профиле test; миграции больше не применяются, ошибка checksum исчезает
-    change-log: classpath:db/changelog/db.changelog-test.xml  # добавленный код: оставлен для compatibility, но не используется из-за enabled=false
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-test.xml
 
   springdoc:
     swagger-ui:
       enabled: false
 
-logging:
-  level:
-    com.example.bankcards: DEBUG
-
+# Конфигурация безопасности для тестового окружения
+security:
+  csrf:
+    enabled: false
+  paths:
+    permit-all:
+      - /auth/**
+      - /api/user/**
 jwt:
   secret: myTestSecretKeyForJWTGenerationWithMinimum256BitsSizeRequiredForHS256Algorithm
   expiration: 86400000
+
+logging:
+  level:
+    com.example.bankcards: DEBUG
