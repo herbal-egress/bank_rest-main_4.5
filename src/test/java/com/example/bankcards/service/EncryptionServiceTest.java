@@ -7,14 +7,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// добавленный код: Простой тест для EncryptionService, так как он не зависит от базы данных
 @SpringBootTest
 class EncryptionServiceTest {
-
     @Autowired
     private EncryptionServiceImpl encryptionService;
 
-    // добавленный код: Тест шифрования данных
     @Test
     void encrypt_Success() {
         String data = "testData";

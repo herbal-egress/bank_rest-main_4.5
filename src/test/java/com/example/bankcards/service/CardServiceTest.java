@@ -153,13 +153,13 @@ class CardServiceTest {
     @WithMockUser(username = "user")
     void updateCard_Success() {
         when(cardRepository.findById(1L)).thenReturn(Optional.of(mockCard));
-        when(userRepository.findByUsername("user")).thenReturn(Optional.of(mockUser)); // добавленный код: Мок для findByUsername
+        when(userRepository.findByUsername("user")).thenReturn(Optional.of(mockUser));
         when(cardRepository.save(any(Card.class))).thenReturn(mockCard);
         CardResponse response = cardService.updateCard(1L, cardUpdateRequest);
         assertEquals("Updated User", response.getOwnerName());
         assertEquals(YearMonth.of(2027, 12), response.getExpirationDate());
         verify(cardRepository, times(1)).findById(1L);
-        verify(userRepository, times(1)).findByUsername("user"); // добавленный код: Проверка вызова findByUsername
+        verify(userRepository, times(1)).findByUsername("user");
         verify(cardRepository, times(1)).save(any(Card.class));
     }
 
