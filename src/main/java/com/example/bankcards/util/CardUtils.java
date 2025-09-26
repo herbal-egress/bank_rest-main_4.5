@@ -1,5 +1,4 @@
 package com.example.bankcards.util;
-
 import com.example.bankcards.dto.card.CardResponse;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
@@ -11,20 +10,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
-
 import java.security.SecureRandom;
 import java.time.YearMonth;
-
-// добавленный код: Утилитный класс для хранения вспомогательных методов, связанных с картами
 @Component
 @RequiredArgsConstructor
 public class CardUtils {
-
     private static final String CARD_NUMBER_PREFIX = "3985";
     private static final SecureRandom random = new SecureRandom();
     private final UserRepository userRepository;
-
-    // добавленный код: Генерация 16-значного номера карты с префиксом "3985"
     public static String generateCardNumber() {
         StringBuilder cardNumber = new StringBuilder(CARD_NUMBER_PREFIX);
         for (int i = 0; i < 12; i++) {
@@ -32,8 +25,6 @@ public class CardUtils {
         }
         return cardNumber.toString();
     }
-
-    // добавленный код: Определение статуса карты на основе даты истечения
     public static Card.Status determineCardStatus(YearMonth expirationDate) {
         YearMonth current = YearMonth.now();
         if (expirationDate.isBefore(current)) {
@@ -41,8 +32,6 @@ public class CardUtils {
         }
         return Card.Status.ACTIVE;
     }
-
-    // добавленный код: Проверка владения картой текущим пользователем
     public void checkCardOwnership(Card card) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
@@ -56,8 +45,6 @@ public class CardUtils {
             }
         }
     }
-
-    // добавленный код: Преобразование сущности Card в DTO CardResponse
     public static CardResponse mapToCardResponse(Card card) {
         CardResponse response = new CardResponse();
         response.setId(card.getId());

@@ -1,5 +1,4 @@
 package com.example.bankcards.service;
-
 import com.example.bankcards.dto.transaction.TransactionRequest;
 import com.example.bankcards.dto.transaction.TransactionResponse;
 import com.example.bankcards.entity.Card;
@@ -17,12 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @SpringBootTest
 class TransactionServiceTest {
     @Autowired
@@ -39,7 +35,6 @@ class TransactionServiceTest {
     private User fromUser;
     private User toUser;
     private Transaction mockTransaction;
-
     @BeforeEach
     void setUp() {
         fromUser = new User();
@@ -69,7 +64,6 @@ class TransactionServiceTest {
         when(userRepository.findByUsername("user")).thenReturn(Optional.of(fromUser));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(mockTransaction);
     }
-
     @Test
     @WithMockUser(username = "user")
     void transfer_Success() {
@@ -86,7 +80,6 @@ class TransactionServiceTest {
         verify(userRepository, times(1)).findByUsername("user");
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
-
     @Test
     @WithMockUser(username = "user")
     void transfer_FromCardNotFound_ThrowsException() {
@@ -96,7 +89,6 @@ class TransactionServiceTest {
         verify(cardRepository, times(1)).findById(999L);
         verify(userRepository, times(1)).findByUsername("user");
     }
-
     @Test
     @WithMockUser(username = "user")
     void transfer_SameCard_ThrowsException() {
@@ -106,7 +98,6 @@ class TransactionServiceTest {
         verify(cardRepository, times(2)).findById(1L);
         verify(userRepository, times(1)).findByUsername("user");
     }
-
     @Test
     @WithMockUser(username = "user")
     void transfer_InsufficientFunds_ThrowsException() {

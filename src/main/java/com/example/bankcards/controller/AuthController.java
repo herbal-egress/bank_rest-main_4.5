@@ -1,6 +1,4 @@
-
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.auth.AuthRequest;
 import com.example.bankcards.dto.auth.AuthResponse;
 import com.example.bankcards.exception.AuthenticationException;
@@ -12,30 +10,20 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
-
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Аутентификация", description = "Для генерации токена по логину/паролю (admin/admin, user/user)")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
-
-    
     private final AuthService authService;
-
-    
-    
-
     @PostMapping(value = "/login", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Аутентификация пользователя",
@@ -51,7 +39,6 @@ public class AuthController {
     })
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
         log.info("Получен запрос на аутентификацию для пользователя: {}", authRequest.getUsername());
-
         try {
             AuthResponse response = authService.authenticate(authRequest);
             log.info("Аутентификация успешна для пользователя: {}", authRequest.getUsername());

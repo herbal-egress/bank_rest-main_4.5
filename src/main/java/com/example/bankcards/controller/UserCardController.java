@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.card.CardResponse;
 import com.example.bankcards.dto.transaction.TransactionRequest;
 import com.example.bankcards.dto.transaction.TransactionResponse;
@@ -32,11 +31,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
-
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
-
 @SecurityScheme(
         name = "bearerAuth",
         type = HTTP,
@@ -44,8 +40,6 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         bearerFormat = "JWT",
         description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
 )
-
-
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "Операции с картами (Юзер)", description = "Для аутентифицированного пользователя с ролью USER")
@@ -53,11 +47,9 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 @RequiredArgsConstructor
 @Slf4j
 public class UserCardController {
-
     private final CardService cardService;
     private final UserRepository userRepository;
     private final TransactionService transactionService;
-
     @GetMapping("/cards")
     @PreAuthorize("hasRole('USER')")
     @Operation(
@@ -79,23 +71,17 @@ public class UserCardController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sort) {
-        
         Long currentUserId = getCurrentUserId();
         log.info("GET /api/user/cards - Запрос карт текущего пользователя ID: {}, page: {}, size: {}", currentUserId, page, size);
-
-        
         Pageable pageable;
         if (sort != null && !sort.isEmpty()) {
             pageable = PageRequest.of(page, size, Sort.by(sort));
         } else {
             pageable = PageRequest.of(page, size);
         }
-
-        
         Page<CardResponse> cards = cardService.getUserCards(currentUserId, pageable);
         return ResponseEntity.ok(cards);
     }
-
     @PostMapping("/cards/{id}/block")
     @PreAuthorize("hasRole('USER')")
     @Operation(
@@ -118,22 +104,14 @@ public class UserCardController {
     public ResponseEntity<String> blockUserCard(
             @Parameter(description = "ID карты для блокировки", example = "1", required = true)
             @PathVariable Long id) {
-        
         Long currentUserId = getCurrentUserId();
         log.info("POST /api/user/cards/{}/block - Запрос блокировки карты пользователем ID: {}", id, currentUserId);
-
-        
         CardResponse card = cardService.getCardById(id);
-
-        
         String responseMessage = String.format(
                 "Пользователь %s (id=%d) отправил запрос на блокировку карты номер %s (id=%d)",
                 card.getOwnerName(), currentUserId, card.getMaskedCardNumber(), id);
-
-        
         return ResponseEntity.ok("{\"message\": \"" + responseMessage + "\"}");
     }
-
     @GetMapping("/cards/{id}/balance")
     @PreAuthorize("hasRole('USER')")
     @Operation(
@@ -156,20 +134,12 @@ public class UserCardController {
     public ResponseEntity<Map<String, Double>> getCardBalance(
             @Parameter(description = "ID карты для просмотра баланса", example = "1", required = true)
             @PathVariable Long id) {
-        
         Long currentUserId = getCurrentUserId();
         log.info("GET /api/user/cards/{}/balance - Запрос баланса карты пользователем ID: {}", id, currentUserId);
-
-        
         CardResponse card = cardService.getCardById(id);
-
-        
         Map<String, Double> response = Map.of("balance", card.getBalance());
-
-        
         return ResponseEntity.ok(response);
     }
-
     @PostMapping("/transactions/transfer")
     @PreAuthorize("hasRole('USER')")
     @Operation(
@@ -185,26 +155,19 @@ public class UserCardController {
     )
     public ResponseEntity<TransactionResponse> transfer(
             @Valid @RequestBody TransactionRequest request) {
-        
         log.info("POST /api/user/transactions/transfer - Запрос на перевод");
-        
         TransactionResponse response = transactionService.transfer(request);
-        
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-    
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             log.error("Попытка доступа без аутентификации");
             throw new AuthenticationException("Пользователь не аутентифицирован");
         }
-
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
-
         return user.getId();
     }
 }

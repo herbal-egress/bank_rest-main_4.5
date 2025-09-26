@@ -1,5 +1,4 @@
 package com.example.bankcards.service;
-
 import com.example.bankcards.dto.card.CardRequest;
 import com.example.bankcards.dto.card.CardResponse;
 import com.example.bankcards.dto.card.CardUpdateRequest;
@@ -20,14 +19,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithMockUser;
-
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 @SpringBootTest
 class CardServiceTest {
     @Autowired
@@ -42,7 +38,6 @@ class CardServiceTest {
     private CardUpdateRequest cardUpdateRequest;
     private Card mockCard;
     private User mockUser;
-
     @BeforeEach
     void setUp() {
         mockUser = new User();
@@ -67,7 +62,6 @@ class CardServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
         when(encryptionService.encrypt(anyString())).thenReturn("encrypted_9991111111111111");
     }
-
     @Test
     @WithMockUser(username = "user")
     void createCard_Success() {
@@ -82,7 +76,6 @@ class CardServiceTest {
         verify(encryptionService, times(1)).encrypt(anyString());
         verify(cardRepository, times(1)).save(any(Card.class));
     }
-
     @Test
     @WithMockUser(username = "user")
     void createCard_NegativeBalance_ThrowsException() {
@@ -90,7 +83,6 @@ class CardServiceTest {
         assertThrows(InvalidCardOperationException.class, () -> cardService.createCard(cardRequest));
         verify(userRepository, never()).findById(anyLong());
     }
-
     @Test
     @WithMockUser(username = "user")
     void createCard_UserNotFound_ThrowsException() {
@@ -99,7 +91,6 @@ class CardServiceTest {
         assertThrows(UserNotFoundException.class, () -> cardService.createCard(cardRequest));
         verify(userRepository, times(1)).findById(999L);
     }
-
     @Test
     @WithMockUser(username = "user")
     void createCard_CardNumberExists_ThrowsException() {
@@ -109,7 +100,6 @@ class CardServiceTest {
         verify(encryptionService, times(1)).encrypt(anyString());
         verify(cardRepository, times(1)).existsByEncryptedCardNumber("encrypted_1231111111111111");
     }
-
     @Test
     @WithMockUser(username = "user")
     void getCardById_Success() {
@@ -122,7 +112,6 @@ class CardServiceTest {
         verify(cardRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).findByUsername("user");
     }
-
     @Test
     @WithMockUser(username = "user")
     void getCardById_NotFound_ThrowsException() {
@@ -130,7 +119,6 @@ class CardServiceTest {
         assertThrows(CardNotFoundException.class, () -> cardService.getCardById(999L));
         verify(cardRepository, times(1)).findById(999L);
     }
-
     @Test
     @WithMockUser(username = "user")
     void getUserCards_Success() {
@@ -139,7 +127,6 @@ class CardServiceTest {
         assertEquals(1, response.getTotalElements());
         verify(cardRepository, times(1)).findByUserId(1L, PageRequest.of(0, 10));
     }
-
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void getAllCards_Success() {
@@ -148,7 +135,6 @@ class CardServiceTest {
         assertEquals(1, response.size());
         verify(cardRepository, times(1)).findAll();
     }
-
     @Test
     @WithMockUser(username = "user")
     void updateCard_Success() {
@@ -162,7 +148,6 @@ class CardServiceTest {
         verify(userRepository, times(1)).findByUsername("user");
         verify(cardRepository, times(1)).save(any(Card.class));
     }
-
     @Test
     @WithMockUser(username = "user")
     void blockCard_Success() {
@@ -173,7 +158,6 @@ class CardServiceTest {
         verify(cardRepository, times(1)).findById(1L);
         verify(cardRepository, times(1)).save(any(Card.class));
     }
-
     @Test
     @WithMockUser(username = "user")
     void activateCard_Success() {
@@ -185,7 +169,6 @@ class CardServiceTest {
         verify(cardRepository, times(1)).findById(1L);
         verify(cardRepository, times(1)).save(any(Card.class));
     }
-
     @Test
     @WithMockUser(username = "user")
     void deleteCard_Success() {

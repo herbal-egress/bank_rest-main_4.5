@@ -1,10 +1,8 @@
 server:
   port: 0
-
 spring:
   application:
     name: bank-rest
-
 ---
 spring:
   config:
@@ -14,13 +12,11 @@ spring:
     resources:
       cache:
         period: 0
-
   datasource:
     url: jdbc:postgresql://localhost:5432/bankdb?currentSchema=test
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: none
@@ -30,15 +26,12 @@ spring:
         show_sql: true
         format_sql: true
         default_schema: test
-
   liquibase:
     enabled: false
     change-log: classpath:db.changelog-test.xml
-
   springdoc:
     swagger-ui:
       enabled: false
-
 # Конфигурация безопасности для тестового окружения
 security:
   csrf:
@@ -50,7 +43,6 @@ security:
 jwt:
   secret: myTestSecretKeyForJWTGenerationWithMinimum256BitsSizeRequiredForHS256Algorithm
   expiration: 86400000
-
 logging:
   level:
     com.example.bankcards: DEBUG

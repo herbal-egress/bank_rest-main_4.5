@@ -1,5 +1,4 @@
 package com.example.bankcards.security;
-
 import com.example.bankcards.service.auth.UserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +21,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
-
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -31,14 +28,11 @@ import java.util.List;
 @Slf4j
 @Primary
 public class SecurityConfig {
-
     private final UserDetailsService userDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("=== КРИТИЧЕСКАЯ НАСТРОЙКА БЕЗОПАСНОСТИ ===");
-
         http
                 .csrf(csrf -> {
                     log.info("CSRF защита ОТКЛЮЧЕНА");
@@ -71,14 +65,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
         log.info("=== КОНФИГУРАЦИЯ БЕЗОПАСНОСТИ ПРИМЕНЕНА ===");
         log.info("permitAll для /auth/login: ✅ ВКЛЮЧЕНО");
         log.info("CSRF: ❌ ОТКЛЮЧЕНО");
         log.info("Sessions: ❌ STATELESS");
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -90,7 +82,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -99,14 +90,12 @@ public class SecurityConfig {
         log.info("AuthenticationProvider НАСТРОЕН с BCrypt");
         return authProvider;
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         AuthenticationManager manager = config.getAuthenticationManager();
         log.info("AuthenticationManager СОЗДАН");
         return manager;
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);

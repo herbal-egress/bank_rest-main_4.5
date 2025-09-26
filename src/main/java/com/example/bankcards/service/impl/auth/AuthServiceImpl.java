@@ -1,5 +1,4 @@
 package com.example.bankcards.service.impl.auth;
-
 import com.example.bankcards.dto.auth.AuthRequest;
 import com.example.bankcards.dto.auth.AuthResponse;
 import com.example.bankcards.util.JwtUtil;
@@ -13,32 +12,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
-
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
-
     @Override
     public AuthResponse authenticate(AuthRequest authRequest) {
         log.debug("Начало процесса аутентификации для пользователя: {}", authRequest.getUsername());
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authRequest.getUsername(),
                         authRequest.getPassword()
                 )
         );
-
         if (authentication.isAuthenticated()) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
             String jwt = jwtUtil.generateToken(userDetails);
-
             AuthResponse response = new AuthResponse();
             response.setToken(jwt);
             response.setUsername(userDetails.getUsername());
@@ -46,7 +38,6 @@ public class AuthServiceImpl implements AuthService {
             response.setRoles(userDetails.getAuthorities().stream()
                     .map(Object::toString)
                     .toArray(String[]::new));
-
             log.info("Аутентификация завершена успешно для пользователя: {}", authRequest.getUsername());
             return response;
         } else {

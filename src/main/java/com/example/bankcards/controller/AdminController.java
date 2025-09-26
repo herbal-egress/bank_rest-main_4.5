@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.user.UserRequest;
 import com.example.bankcards.dto.user.UserResponse;
 import com.example.bankcards.service.UserService;
@@ -19,11 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-
 import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
-
 @SecurityScheme(
         name = "bearerAuth",
         type = HTTP,
@@ -31,8 +27,6 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         bearerFormat = "JWT",
         description = "JWT токен для авторизации. Вставьте: Bearer <токен>"
 )
-
-
 @RestController
 @RequestMapping("/api/admin/users")
 @Tag(name = "Управление пользователями (Админ)", description = "Для CRUD с пользователями приложения")
@@ -40,9 +34,7 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
 @RequiredArgsConstructor
 @Slf4j
 public class AdminController {
-
     private final UserService userService;
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -66,14 +58,10 @@ public class AdminController {
             }
     )
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        
         log.info("POST /api/admin/users - Создание пользователя");
-        
         UserResponse createdUser = userService.createUser(userRequest);
-        
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
-
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -89,14 +77,10 @@ public class AdminController {
     public ResponseEntity<UserResponse> getUserById(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id) {
-        
         log.info("GET /api/admin/users/{} - Запрос пользователя", id);
-        
         UserResponse user = userService.getUserById(id);
-        
         return ResponseEntity.ok(user);
     }
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -109,14 +93,10 @@ public class AdminController {
             }
     )
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        
         log.info("GET /api/admin/users - Запрос всех пользователей");
-        
         List<UserResponse> users = userService.getAllUsers();
-        
         return ResponseEntity.ok(users);
     }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -145,14 +125,10 @@ public class AdminController {
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id,
             @Valid @RequestBody UserRequest userRequest) {
-        
         log.info("PUT /api/admin/users/{} - Обновление пользователя", id);
-        
         UserResponse updatedUser = userService.updateUser(id, userRequest);
-        
         return ResponseEntity.ok(updatedUser);
     }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -167,11 +143,8 @@ public class AdminController {
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "ID пользователя", example = "1", required = true)
             @PathVariable Long id) {
-        
         log.info("DELETE /api/admin/users/{} - Удаление пользователя", id);
-        
         userService.deleteUser(id);
-        
         return ResponseEntity.noContent().build();
     }
 }

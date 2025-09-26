@@ -1,13 +1,9 @@
-
 spring:
   application:
     name: bank-rest
-
   profiles:
     active: dev
-
 ---
-
 spring:
   config:
     activate:
@@ -16,13 +12,11 @@ spring:
     resources:
       cache:
         period: 0  
-
   datasource:
     url: jdbc:postgresql://localhost:5432/bankdb
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate 
@@ -31,40 +25,30 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
         format_sql: true
-
-
   liquibase:
     enabled: true
     change-log: classpath:db.changelog-master.xml
-
-  
   springdoc:
     api-docs:
       path: /v3/api-docs
     swagger-ui:
       path: /swagger-ui.html
       enabled: true
-    
     security-schemes:
       bearerAuth:
         type: http
         scheme: bearer
         bearerFormat: JWT
         description: 'JWT токен: Bearer <токен>'
-
-
 jwt:
   secret: 6d9a8f4c2b7e1a3d5f8c9b2a7e4d1f6c3a9b8d7e2f5c1a3d6f9e8b7c4a2d5f1e3c 
   expiration: 86400000 
-
-
 logging:
   level:
     com.example.bank_rest: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 server:
   port: 8080
   servlet:
