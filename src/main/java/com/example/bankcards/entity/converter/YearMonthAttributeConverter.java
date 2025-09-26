@@ -1,13 +1,13 @@
 
-package com.example.bankcards.util;
+package com.example.bankcards.entity.converter;
 
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Date;
 import java.time.YearMonth;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Converter(autoApply = true) 
 @Slf4j 

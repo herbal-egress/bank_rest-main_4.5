@@ -2,7 +2,7 @@
 package com.example.bankcards.config;
 
 
-import com.example.bankcards.util.YearMonthAttributeConverter;
+import com.example.bankcards.entity.converter.YearMonthAttributeConverter;
 import org.hibernate.cfg.AvailableSettings;
 
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;

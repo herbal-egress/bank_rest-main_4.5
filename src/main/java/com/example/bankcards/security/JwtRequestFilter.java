@@ -1,5 +1,5 @@
 
-package com.example.bankcards.config.security;
+package com.example.bankcards.security;
 
 import com.example.bankcards.service.auth.UserDetailsService;
 import com.example.bankcards.util.JwtUtil;
