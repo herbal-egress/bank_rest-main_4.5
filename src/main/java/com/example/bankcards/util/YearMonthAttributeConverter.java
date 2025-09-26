@@ -1,5 +1,5 @@
 
-package com.example.bankcards.entity.converter;
+package com.example.bankcards.util;
 
 
 import jakarta.persistence.AttributeConverter;

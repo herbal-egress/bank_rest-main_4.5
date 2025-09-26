@@ -1,5 +1,5 @@
 
-package com.example.bankcards.config.security;
+package com.example.bankcards.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

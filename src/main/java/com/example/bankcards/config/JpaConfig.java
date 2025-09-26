@@ -2,7 +2,7 @@
 package com.example.bankcards.config;
 
 
-import com.example.bankcards.entity.converter.YearMonthAttributeConverter;
+import com.example.bankcards.util.YearMonthAttributeConverter;
 import org.hibernate.cfg.AvailableSettings;
 
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-
-import jakarta.persistence.EntityManagerFactory;
 
 import javax.sql.DataSource;
 import java.util.HashMap;

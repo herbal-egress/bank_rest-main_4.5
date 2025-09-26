@@ -2,7 +2,7 @@ package com.example.bankcards.service.impl.auth;
 
 import com.example.bankcards.dto.auth.AuthRequest;
 import com.example.bankcards.dto.auth.AuthResponse;
-import com.example.bankcards.config.security.JwtUtil;
+import com.example.bankcards.util.JwtUtil;
 import com.example.bankcards.service.auth.AuthService;
 import com.example.bankcards.service.auth.UserDetailsService;
 import org.springframework.security.authentication.AuthenticationManager;
