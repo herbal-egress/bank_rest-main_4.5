@@ -6,18 +6,13 @@ services:
     environment:
       POSTGRES_DB: bankdb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password # изменил ИИ: Использует секрет из db_password.txt для PostgreSQL
+      POSTGRES_PASSWORD: 123
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    secrets:
-      - db_password
     networks:
       - bank_network
-secrets:
-  db_password:
-    file: ./db_password.txt # добавленный код: Загружает пароль из db_password.txt как секрет
 volumes:
   postgres_data:
 networks:

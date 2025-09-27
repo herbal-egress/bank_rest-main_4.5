@@ -19,7 +19,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bankdb
     username: postgres
-    password: ${DB_PASSWORD} # изменил ИИ: Использует переменную окружения DB_PASSWORD, загружаемую из .env для Spring Boot
+    password: 123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
