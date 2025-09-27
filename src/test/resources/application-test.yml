@@ -1,6 +1,10 @@
 server:
   port: 0
 spring:
+  main:
+    banner-mode: off
+  logging:
+    charset: UTF-8
   application:
     name: bank-rest
 ---

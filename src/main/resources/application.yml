@@ -1,4 +1,8 @@
 spring:
+  main:
+    banner-mode: off # добавленный код: Отключает баннер Spring Boot при запуске
+  logging:
+    charset: UTF-8 # добавленный код: Устанавливает кодировку логов в UTF-8
   application:
     name: bank-rest
   profiles:
@@ -11,7 +15,7 @@ spring:
   web:
     resources:
       cache:
-        period: 0  
+        period: 0
   datasource:
     url: jdbc:postgresql://localhost:5432/bankdb
     username: postgres
@@ -19,7 +23,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate 
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -41,8 +45,8 @@ spring:
         bearerFormat: JWT
         description: 'JWT токен: Bearer <токен>'
 jwt:
-  secret: 6d9a8f4c2b7e1a3d5f8c9b2a7e4d1f6c3a9b8d7e2f5c1a3d6f9e8b7c4a2d5f1e3c 
-  expiration: 86400000 
+  secret: 6d9a8f4c2b7e1a3d5f8c9b2a7e4d1f6c3a9b8d7e2f5c1a3d6f9e8b7c4a2d5f1e3c
+  expiration: 86400000
 logging:
   level:
     com.example.bank_rest: DEBUG
@@ -54,7 +58,7 @@ server:
   servlet:
     session:
       cookie:
-        secure: false  
+        secure: false
   tomcat:
     remoteip:
       remote-ip-header: x-forwarded-for
