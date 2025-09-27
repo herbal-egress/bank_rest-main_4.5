@@ -1,18 +1,18 @@
   openapi: 3.0.3
   info:
     title: Bank REST API
-    description: REST API для управления банковскими картами, пользователями и транзакциями с JWT-аутентификацией.
+    description: REST API для управления банковскими картами, пользователями и транзакциями с использованием JWT-аутентификации. Поддерживает операции регистрации, аутентификации, управления пользователями и картами, а также проведение транзакций.
     version: 4.5.0
   servers:
     - url: http://localhost:8080
       description: Локальный сервер
   security:
-    - bearerAuth: [ ]
+    - bearerAuth: []
   paths:
     /auth/register:
       post:
         summary: Регистрация нового пользователя
-        description: Регистрирует нового пользователя с указанными данными.
+        description: Создает нового пользователя с уникальным именем и паролем. Возвращает JWT-токен для последующей аутентификации.
         operationId: registerUser
         tags:
           - Аутентификация
@@ -24,13 +24,13 @@
                 $ref: '#/components/schemas/AuthRequest'
         responses:
           '201':
-            description: Пользователь успешно зарегистрирован
+            description: Пользователь успешно зарегистрирован, возвращен JWT-токен
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/AuthResponse'
           '400':
-            description: Неверные данные или имя пользователя уже существует
+            description: Неверные данные (например, пустое имя пользователя или пароль, или имя пользователя уже существует)
             content:
               application/json:
                 schema:
@@ -38,7 +38,7 @@
     /auth/login:
       post:
         summary: Аутентификация пользователя
-        description: Выполняет вход пользователя и возвращает JWT-токен.
+        description: Аутентифицирует пользователя по имени и паролю, возвращая JWT-токен для доступа к защищенным эндпоинтам.
         operationId: loginUser
         tags:
           - Аутентификация
@@ -56,15 +56,15 @@
                 schema:
                   $ref: '#/components/schemas/AuthResponse'
           '401':
-            description: Неверные учетные данные
+            description: Неверное имя пользователя или пароль
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
     /admin/users:
       get:
-        summary: Получение списка пользователей
-        description: Возвращает список всех пользователей (только для администраторов).
+        summary: Получение списка всех пользователей
+        description: Возвращает список всех зарегистрированных пользователей. Доступно только для пользователей с ролью ADMIN.
         operationId: getAllUsers
         tags:
           - Управление пользователями
@@ -78,14 +78,14 @@
                   items:
                     $ref: '#/components/schemas/UserResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       post:
         summary: Создание нового пользователя
-        description: Создает нового пользователя (только для администраторов).
+        description: Создает нового пользователя с указанным именем и паролем. Доступно только для пользователей с ролью ADMIN.
         operationId: createUser
         tags:
           - Управление пользователями
@@ -103,13 +103,13 @@
                 schema:
                   $ref: '#/components/schemas/UserResponse'
           '400':
-            description: Неверные данные или имя пользователя уже существует
+            description: Неверные данные (например, пустое имя пользователя или пароль, или имя пользователя уже существует)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
@@ -117,7 +117,7 @@
     /admin/users/{id}:
       get:
         summary: Получение пользователя по ID
-        description: Возвращает данные пользователя по его ID (только для администраторов).
+        description: Возвращает данные пользователя по его идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: getUserById
         tags:
           - Управление пользователями
@@ -128,7 +128,7 @@
             schema:
               type: integer
               format: int64
-            description: ID пользователя
+            description: Уникальный идентификатор пользователя
         responses:
           '200':
             description: Пользователь успешно найден
@@ -137,20 +137,20 @@
                 schema:
                   $ref: '#/components/schemas/UserResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Пользователь не найден
+            description: Пользователь с указанным ID не найден
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       put:
         summary: Обновление пользователя
-        description: Обновляет данные пользователя по ID (только для администраторов).
+        description: Обновляет данные пользователя (имя и пароль) по его идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: updateUser
         tags:
           - Управление пользователями
@@ -161,7 +161,7 @@
             schema:
               type: integer
               format: int64
-            description: ID пользователя
+            description: Уникальный идентификатор пользователя
         requestBody:
           required: true
           content:
@@ -176,26 +176,26 @@
                 schema:
                   $ref: '#/components/schemas/UserResponse'
           '400':
-            description: Неверные данные
+            description: Неверные данные (например, пустое имя пользователя или пароль)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Пользователь не найден
+            description: Пользователь с указанным ID не найден
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       delete:
         summary: Удаление пользователя
-        description: Удаляет пользователя по ID (только для администраторов).
+        description: Удаляет пользователя по его идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: deleteUser
         tags:
           - Управление пользователями
@@ -206,18 +206,18 @@
             schema:
               type: integer
               format: int64
-            description: ID пользователя
+            description: Уникальный идентификатор пользователя
         responses:
           '204':
             description: Пользователь успешно удален
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Пользователь не найден
+            description: Пользователь с указанным ID не найден
             content:
               application/json:
                 schema:
@@ -225,7 +225,7 @@
     /admin/cards:
       get:
         summary: Получение списка всех карт
-        description: Возвращает список всех банковских карт (только для администраторов).
+        description: Возвращает список всех банковских карт в системе. Доступно только для пользователей с ролью ADMIN.
         operationId: getAllCards
         tags:
           - Управление картами (админ)
@@ -239,14 +239,14 @@
                   items:
                     $ref: '#/components/schemas/CardResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       post:
         summary: Создание новой карты
-        description: Создает новую банковскую карту (только для администраторов).
+        description: Создает новую банковскую карту для указанного пользователя. Доступно только для пользователей с ролью ADMIN.
         operationId: createCard
         tags:
           - Управление картами (админ)
@@ -264,13 +264,13 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '400':
-            description: Неверные данные или номер карты уже существует
+            description: Неверные данные (например, некорректный номер карты, CVV или дата истечения)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
@@ -278,7 +278,7 @@
     /admin/cards/{id}:
       get:
         summary: Получение карты по ID
-        description: Возвращает данные карты по ее ID (только для администраторов).
+        description: Возвращает данные банковской карты по ее идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: getCardById
         tags:
           - Управление картами (админ)
@@ -289,7 +289,7 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         responses:
           '200':
             description: Карта успешно найдена
@@ -298,20 +298,20 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       put:
         summary: Обновление карты
-        description: Обновляет данные карты по ID (только для администраторов).
+        description: Обновляет данные банковской карты (дата истечения, CVV) по ее идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: updateCard
         tags:
           - Управление картами (админ)
@@ -322,7 +322,7 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         requestBody:
           required: true
           content:
@@ -337,26 +337,26 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '400':
-            description: Неверные данные
+            description: Неверные данные (например, некорректная дата истечения или CVV)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       delete:
         summary: Удаление карты
-        description: Удаляет карту по ID (только для администраторов).
+        description: Удаляет банковскую карту по ее идентификатору. Доступно только для пользователей с ролью ADMIN.
         operationId: deleteCard
         tags:
           - Управление картами (админ)
@@ -367,18 +367,18 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         responses:
           '204':
             description: Карта успешно удалена
           '403':
-            description: Доступ запрещен
+            description: Доступ запрещен (требуется роль ADMIN)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
@@ -386,7 +386,7 @@
     /api/cards:
       get:
         summary: Получение списка карт пользователя
-        description: Возвращает список карт, принадлежащих аутентифицированному пользователю.
+        description: Возвращает список всех карт, принадлежащих аутентифицированному пользователю. Требуется JWT-токен.
         operationId: getUserCards
         tags:
           - Управление картами (пользователь)
@@ -400,14 +400,14 @@
                   items:
                     $ref: '#/components/schemas/CardResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       post:
-        summary: Создание новой карты для пользователя
-        description: Создает новую карту для аутентифицированного пользователя.
+        summary: Создание новой карты пользователя
+        description: Создает новую банковскую карту для аутентифицированного пользователя. Требуется JWT-токен.
         operationId: createUserCard
         tags:
           - Управление картами (пользователь)
@@ -425,13 +425,13 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '400':
-            description: Неверные данные или номер карты уже существует
+            description: Неверные данные (например, некорректный номер карты, CVV или дата истечения)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
@@ -439,7 +439,7 @@
     /api/cards/{id}:
       get:
         summary: Получение карты пользователя по ID
-        description: Возвращает данные карты пользователя по ее ID.
+        description: Возвращает данные карты по ее идентификатору, если она принадлежит аутентифицированному пользователю. Требуется JWT-токен.
         operationId: getUserCardById
         tags:
           - Управление картами (пользователь)
@@ -450,7 +450,7 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         responses:
           '200':
             description: Карта успешно найдена
@@ -459,26 +459,26 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ к карте запрещен
+            description: Доступ к карте запрещен (карта принадлежит другому пользователю)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       put:
         summary: Обновление карты пользователя
-        description: Обновляет данные карты пользователя по ID.
+        description: Обновляет данные карты (дата истечения, CVV) по ее идентификатору, если она принадлежит аутентифицированному пользователю. Требуется JWT-токен.
         operationId: updateUserCard
         tags:
           - Управление картами (пользователь)
@@ -489,7 +489,7 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         requestBody:
           required: true
           content:
@@ -504,32 +504,32 @@
                 schema:
                   $ref: '#/components/schemas/CardResponse'
           '400':
-            description: Неверные данные
+            description: Неверные данные (например, некорректная дата истечения или CVV)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ к карте запрещен
+            description: Доступ к карте запрещен (карта принадлежит другому пользователю)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
       delete:
         summary: Удаление карты пользователя
-        description: Удаляет карту пользователя по ID.
+        description: Удаляет карту по ее идентификатору, если она принадлежит аутентифицированному пользователю. Требуется JWT-токен.
         operationId: deleteUserCard
         tags:
           - Управление картами (пользователь)
@@ -540,24 +540,24 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         responses:
           '204':
             description: Карта успешно удалена
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ к карте запрещен
+            description: Доступ к карте запрещен (карта принадлежит другому пользователю)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
@@ -565,7 +565,7 @@
     /api/transactions:
       post:
         summary: Выполнение транзакции
-        description: Выполняет транзакцию между картами для аутентифицированного пользователя.
+        description: Выполняет перевод денежных средств между двумя картами. Карта-отправитель должна принадлежать аутентифицированному пользователю. Требуется JWT-токен.
         operationId: createTransaction
         tags:
           - Транзакции
@@ -583,19 +583,19 @@
                 schema:
                   $ref: '#/components/schemas/TransactionResponse'
           '400':
-            description: Неверные данные, недостаточно средств или перевод на ту же карту
+            description: Неверные данные (например, недостаточно средств, перевод на ту же карту, некорректная сумма)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Одна из карт (отправитель или получатель) не найдена
             content:
               application/json:
                 schema:
@@ -603,7 +603,7 @@
     /api/transactions/card/{cardId}:
       get:
         summary: Получение транзакций по карте
-        description: Возвращает список транзакций для указанной карты пользователя.
+        description: Возвращает список всех транзакций, связанных с указанной картой, если она принадлежит аутентифицированному пользователю. Требуется JWT-токен.
         operationId: getTransactionsByCardId
         tags:
           - Транзакции
@@ -614,7 +614,7 @@
             schema:
               type: integer
               format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
         responses:
           '200':
             description: Список транзакций успешно получен
@@ -625,19 +625,19 @@
                   items:
                     $ref: '#/components/schemas/TransactionResponse'
           '401':
-            description: Неавторизован
+            description: Неавторизован (отсутствует или недействительный JWT-токен)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '403':
-            description: Доступ к карте запрещен
+            description: Доступ к карте запрещен (карта принадлежит другому пользователю)
             content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/ErrorResponse'
           '404':
-            description: Карта не найдена
+            description: Карта с указанным ID не найдена
             content:
               application/json:
                 schema:
@@ -649,12 +649,16 @@
         properties:
           username:
             type: string
-            description: Имя пользователя
-            example: user123
+            description: Имя пользователя (должно быть уникальным, минимум 3 символа)
+            example: john_doe
+            minLength: 3
+            maxLength: 50
           password:
             type: string
-            description: Пароль пользователя
-            example: password123
+            description: Пароль пользователя (минимум 6 символов)
+            example: securePass123
+            minLength: 6
+            maxLength: 100
         required:
           - username
           - password
@@ -664,7 +668,7 @@
           token:
             type: string
             description: JWT-токен для аутентификации
-            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huX2RvZSIsInJvbGVzIjpbIlVTRVIiXSwiZXhwIjoxNzI3NDg4NzYwfQ...
         required:
           - token
       UserRequest:
@@ -672,12 +676,16 @@
         properties:
           username:
             type: string
-            description: Имя пользователя
-            example: user123
+            description: Имя пользователя (должно быть уникальным, минимум 3 символа)
+            example: john_doe
+            minLength: 3
+            maxLength: 50
           password:
             type: string
-            description: Пароль пользователя
-            example: password123
+            description: Пароль пользователя (минимум 6 символов)
+            example: securePass123
+            minLength: 6
+            maxLength: 100
         required:
           - username
           - password
@@ -687,12 +695,14 @@
           id:
             type: integer
             format: int64
-            description: ID пользователя
+            description: Уникальный идентификатор пользователя
             example: 1
           username:
             type: string
             description: Имя пользователя
-            example: user123
+            example: john_doe
+            minLength: 3
+            maxLength: 50
         required:
           - id
           - username
@@ -701,20 +711,23 @@
         properties:
           cardNumber:
             type: string
-            description: Номер карты (16 цифр)
+            description: Номер карты (16 цифр, только цифры)
             example: 1234567890123456
+            pattern: '^\d{16}$'
           expiryDate:
             type: string
-            description: Дата истечения срока действия карты (ГГГГ-ММ)
+            description: Дата истечения срока действия карты в формате ГГГГ-ММ
             example: 2025-12
+            pattern: '^\d{4}-(0[1-9]|1[0-2])$'
           cvv:
             type: string
             description: CVV-код карты (3 цифры)
             example: 123
+            pattern: '^\d{3}$'
           userId:
             type: integer
             format: int64
-            description: ID владельца карты
+            description: Уникальный идентификатор владельца карты
             example: 1
         required:
           - cardNumber
@@ -726,12 +739,14 @@
         properties:
           expiryDate:
             type: string
-            description: Новая дата истечения срока действия карты (ГГГГ-ММ)
+            description: Новая дата истечения срока действия карты в формате ГГГГ-ММ
             example: 2026-12
+            pattern: '^\d{4}-(0[1-9]|1[0-2])$'
           cvv:
             type: string
             description: Новый CVV-код карты (3 цифры)
             example: 456
+            pattern: '^\d{3}$'
         required:
           - expiryDate
           - cvv
@@ -741,25 +756,28 @@
           id:
             type: integer
             format: int64
-            description: ID карты
+            description: Уникальный идентификатор карты
             example: 1
           cardNumber:
             type: string
-            description: Маскированный номер карты
-            example: '**** **** **** 3456' # изменил ИИ: Заключено в кавычки для корректного парсинга YAML
+            description: Маскированный номер карты (показаны только последние 4 цифры)
+            example: '**** **** **** 3456'
+            pattern: '^\*{4} \*{4} \*{4} \d{4}$'
           expiryDate:
             type: string
-            description: Дата истечения срока действия карты (ГГГГ-ММ)
+            description: Дата истечения срока действия карты в формате ГГГГ-ММ
             example: 2025-12
+            pattern: '^\d{4}-(0[1-9]|1[0-2])$'
           balance:
             type: number
             format: double
-            description: Баланс карты
+            description: Текущий баланс карты
             example: 1000.50
+            minimum: 0
           userId:
             type: integer
             format: int64
-            description: ID владельца карты
+            description: Уникальный идентификатор владельца карты
             example: 1
         required:
           - id
@@ -773,18 +791,19 @@
           fromCardId:
             type: integer
             format: int64
-            description: ID карты-отправителя
+            description: Уникальный идентификатор карты-отправителя
             example: 1
           toCardId:
             type: integer
             format: int64
-            description: ID карты-получателя
+            description: Уникальный идентификатор карты-получателя
             example: 2
           amount:
             type: number
             format: double
-            description: Сумма транзакции
+            description: Сумма транзакции (должна быть положительной)
             example: 100.00
+            minimum: 0.01
         required:
           - fromCardId
           - toCardId
@@ -795,27 +814,28 @@
           id:
             type: integer
             format: int64
-            description: ID транзакции
+            description: Уникальный идентификатор транзакции
             example: 1
           fromCardId:
             type: integer
             format: int64
-            description: ID карты-отправителя
+            description: Уникальный идентификатор карты-отправителя
             example: 1
           toCardId:
             type: integer
             format: int64
-            description: ID карты-получателя
+            description: Уникальный идентификатор карты-получателя
             example: 2
           amount:
             type: number
             format: double
             description: Сумма транзакции
             example: 100.00
+            minimum: 0.01
           transactionDate:
             type: string
             format: date-time
-            description: Дата и время транзакции
+            description: Дата и время выполнения транзакции
             example: 2025-09-27T11:23:00Z
         required:
           - id
